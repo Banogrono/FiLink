@@ -1,0 +1,181 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:FiLink.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Height="320"
+        Width="600"
+        MinHeight="300"
+        MinWidth="450"
+        x:Class="FiLink.Views.MainWindow"
+        Icon="/Assets/FiLinkIco.png"
+        KeyUp="InputElement_OnKeyUp"
+        Initialized="Window_OnInitialized"
+        Title="FiLink">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+
+    <Grid> <!-- Main Grid -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3" />  <!-- cosmetic space    0 -->
+            <RowDefinition Height="24" /> <!-- space for labels  1 -->
+            <RowDefinition Height="3" />  <!-- cosmetic space    2 -->
+            <RowDefinition Height="*" />  <!-- space for Lists   3 -->
+            <RowDefinition Height="3" />  <!-- cosmetic space    4 -->
+            <RowDefinition Height="50" /> <!-- space for buttons 5 -->
+            <RowDefinition Height="3" />  <!-- cosmetic space    6-->
+            <RowDefinition Height="25" /> <!-- space shortcuts description 7 -->
+            <RowDefinition Height="3" />  <!-- cosmetic space    8-->
+        </Grid.RowDefinitions>
+
+        <Panel Grid.Row="0" Background="#2b2b2b" /> <!-- cosmetic color panels -->
+        <Panel Grid.Row="2" Background="#2b2b2b" />
+        <Panel Grid.Row="4" Background="#2b2b2b" />
+        <Panel Grid.Row="6" Background="#2b2b2b" />
+        <Panel Grid.Row="7" Background="#2b2b2b" />
+        <Panel Grid.Row="8" Background="#2b2b2b" />
+
+
+        <!-- ========================================== TOP SECTION ================================================ -->
+        <Grid Grid.Row="1" Background="#323232"> <!-- Host and Files name grid -->
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" /> <!-- Space for Hosts tab and File Tab-->
+                <ColumnDefinition Width="4*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Labels for Hosts and Files columns -->
+            <Label Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"
+                   FontSize="14">
+                Available hosts
+            </Label>
+            <Label Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"
+                   FontSize="14">
+                Files for sending
+            </Label>
+        </Grid>
+
+        <!-- ======================================= MIDDLE SECTION ================================================ -->
+        <Grid Grid.Row="3"> <!-- Host and Files grid -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3" /> <!-- cosmetic space -->
+                <ColumnDefinition Width="2*" /> <!-- space for list with hosts  -->
+                <ColumnDefinition Width="6" /> <!-- cosmetic space -->
+                <ColumnDefinition Width="4*" /> <!-- cosmetic space for list with files -->
+                <ColumnDefinition Width="3" /> <!-- cosmetic space -->
+            </Grid.ColumnDefinitions>
+
+            <Panel Grid.Column="0" Background="#2b2b2b" /> <!-- cosmetic color panels -->
+            <Panel Grid.Column="2" Background="#2b2b2b" />
+            <Panel Grid.Column="4" Background="#2b2b2b" />
+
+
+            <!-- List box for hosts presentation -->
+            <ListBox
+                Items="{Binding HostCollection}"
+                SelectedItems="{Binding SelectedHosts}"
+                Grid.Column="1"
+                SelectionMode="Multiple,Toggle"
+                Background="#3b3b3b">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#3b3b3b">
+                            <TextBlock Foreground="White" Background="Transparent" Text="{Binding}" />
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- List box for files presentation -->
+            <ListBox
+                Items="{Binding FileCollection}"
+                SelectedItems="{Binding SelectedFiles}"
+                Grid.Column="3"
+                SelectionMode="Multiple,Toggle"
+                Background="#3b3b3b">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#3b3b3b">
+                            <TextBlock Foreground="White" Text="{Binding}" />
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <Style>
+                    
+                </Style>
+            </ListBox>
+        </Grid>
+
+        <!-- ======================================= BOTTOM SECTION ================================================ -->
+        <Grid Grid.Row="5" Background="#323232"> <!-- Grid for controls-->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" /> <!-- space for settings menu  -->
+                <ColumnDefinition Width="3" /> <!-- cosmetic space -->
+                <ColumnDefinition Width="*" /> <!-- cosmetic space for progress bar -->
+                <ColumnDefinition Width="3" /> <!-- cosmetic space -->
+                <ColumnDefinition Width="*" /> <!-- cosmetic space for send button -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Menu -->
+            <Menu Grid.Column="0" HorizontalAlignment="Center">
+                <MenuItem Header="☰ Menu" Foreground="White" Padding="2" Background="Transparent"
+                          Icon="/Assets/menu.png">
+                    <MenuItem Header="_Open File" Foreground="White" Background="#2b2b2b" Click="OpenFile_OnClick" />
+                    <MenuItem Header="_Open Folder" Foreground="White" Background="#2b2b2b" Click="OpenFolder_OnClick" />
+                    <MenuItem Header="_Refresh Hosts" Foreground="White" Background="#2b2b2b"
+                              Click="RefreshHosts_OnClick" />
+                    <MenuItem Header="_Clear File List" Foreground="White" Background="#2b2b2b"
+                              Click="ClearList_OnClick" />
+                    <MenuItem Header="_Open Received Files Folder" Foreground="White" Background="#2b2b2b"
+                              Click="OpenDownloads_OnClick" />
+                    <Separator />
+                    <MenuItem Header="_Save Host(s)" Foreground="White" Background="#2b2b2b" Click="SaveHost_OnClick" />
+                    <MenuItem Header="_Remove Saved Host(s)" Foreground="White" Background="#2b2b2b"
+                              Click="RemoveHost_OnClick" />
+                    <Separator />
+                    <MenuItem Header="_Settings" Foreground="White" Background="#2b2b2b"
+                              Click="Settings_OnClick" />
+                    <MenuItem Header="_Exit" Foreground="White" Background="#2b2b2b" Click="Exit_OnClick" />
+                </MenuItem>
+            </Menu>
+
+            <!-- Progress Bar &  Information Label-->
+            <ProgressBar Grid.Column="2" Foreground="#669653" HorizontalAlignment="Center" Minimum="0" Maximum="100"
+                         Value="{Binding ProgressBarValue}" />
+            <Label Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                   Content="{Binding InfoLabel}" />
+
+            <!-- Send button -->
+            <Button Grid.Column="4" HorizontalAlignment="Center" Foreground="White" Background="Transparent"
+                    Click="SendButton_OnClick">
+                Send Files 🖅
+            </Button>
+        </Grid>
+
+        <!-- ====================================== SHORTCUT SECTION =============================================== -->
+        <Grid Grid.Row="7">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" /> <!-- F1 Open File 0 -->
+                <ColumnDefinition Width="*" /> <!-- F2 Send File 1 -->
+                <ColumnDefinition Width="*" /> <!-- F3 Clear File 2 -->
+                <ColumnDefinition Width="*" /> <!-- F4 Save Host 3 -->
+                <ColumnDefinition Width="*" /> <!-- F5 Refresh Host 4-->
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Column="0" Foreground="#FFFFFF" Content="F1 Open File" FontSize="10"
+                   HorizontalAlignment="Center" />
+            <Label Grid.Column="1" Foreground="#FFFFFF" Content="F2 Send File(s)" FontSize="10"
+                   HorizontalAlignment="Center" />
+            <Label Grid.Column="2" Foreground="#FFFFFF" Content="F3 Clear File(s)" FontSize="10"
+                   HorizontalAlignment="Center" />
+            <Label Grid.Column="3" Foreground="#FFFFFF" Content="F4 Save Host(s)" FontSize="10"
+                   HorizontalAlignment="Center" />
+            <Label Grid.Column="4" Foreground="#FFFFFF" Content="F5 Refresh Host" FontSize="10"
+                   HorizontalAlignment="Center" />
+        </Grid>
+    </Grid>
+</Window>

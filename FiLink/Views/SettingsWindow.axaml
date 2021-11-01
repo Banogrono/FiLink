@@ -1,0 +1,190 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:FiLink.ViewModels"
+        mc:Ignorable="d"
+        Width="300"
+        Height="325"
+        MinHeight="325"
+        MinWidth="300"
+        x:Class="FiLink.Views.SettingsWindow"
+        Icon="/Assets/FiLinkIco.png"
+        Title="Settings">
+
+    <Design.DataContext>
+        <vm:SettingsWindowViewModel />
+    </Design.DataContext>
+
+    <Grid Background="#2b2b2b">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="10" /> <!-- 0 decorative -->
+            <RowDefinition Height="*" />  <!-- 1 for content -->
+            <RowDefinition Height="1" />  <!-- 2 decorative -->
+            <RowDefinition Height="40" /> <!-- 3 for info label-->
+            <RowDefinition Height="30" /> <!-- 4 for buttons -->
+            <RowDefinition Height="10" /> <!-- 5 decorative -->
+        </Grid.RowDefinitions>
+
+        <!-- ======================================== SETTINGS SECTION ============================================= -->
+
+        <TabControl Grid.Row="1" >
+            <TabItem Header="General" FontSize="16">
+                <Grid Background="#323232">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" /> <!-- 1 -->
+                        <RowDefinition Height="*" /> <!-- 2 -->
+                        <RowDefinition Height="*" /> <!-- 3 -->
+                        <RowDefinition Height="*" /> <!-- 4 -->
+                        <RowDefinition Height="*" /> <!-- 5 -->
+                    </Grid.RowDefinitions>
+                    
+                    <!-- FILE DIRECTORY -->
+                    <Grid Grid.Row="0" ColumnDefinitions="100,*">
+                        <Label
+                            Grid.Column="0"
+                            FontSize="10"
+                            Content="File Directory:"
+                            Margin="10"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                        <TextBox
+                            Grid.Column="1"
+                            Margin="10"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            FontSize="10"
+                            Text="{Binding FileFolder}" />
+                    </Grid>
+
+                    <!-- ADD HOST -->
+                    <Grid Grid.Row="1" ColumnDefinitions="100,*">
+                        <Label
+                            Grid.Column="0"
+                            FontSize="10"
+                            Content="Add Host:"
+                            Margin="10"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                        <TextBox
+                            Grid.Column="1"
+                            FontSize="10"
+                            Margin="10"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding HostIp}" />
+                    </Grid>
+
+                    <!-- IP RANGE -->
+                    <Grid Grid.Row="2" ColumnDefinitions="100,*">
+                        <Label
+                            Grid.Column="0"
+                            FontSize="10"
+                            Content="IP Range:"
+                            Margin="10"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                        <TextBox
+                            Grid.Column="1"
+                            FontSize="10"
+                            Margin="10"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding IpRange}" />
+                    </Grid>
+                    <!-- PING TIMEOUT-->
+                    <Grid Grid.Row="3" ColumnDefinitions="100,*">
+                        <Label
+                            Grid.Column="0"
+                            FontSize="10"
+                            Content="Ping timeout:"
+                            Margin="10"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                        <TextBox
+                            Grid.Column="1"
+                            FontSize="10"
+                            Margin="10"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding PingTimeout}" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+            
+            <TabItem Header="Files" FontSize="16">
+                <Grid Background="#323232">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" /> <!-- 1 -->
+                        <RowDefinition Height="*" /> <!-- 2 -->
+                        <RowDefinition Height="*" /> <!-- 3 -->
+                        <RowDefinition Height="*" /> <!-- 4 -->
+                        <RowDefinition Height="*" /> <!-- 5 -->
+                    </Grid.RowDefinitions>
+                    
+                    <!-- ENCRYPTION -->
+                    <Grid Grid.Row="0" ColumnDefinitions="100,*">
+                        <CheckBox
+                            Grid.Column="0"
+                            HorizontalAlignment="Center"
+                            Margin="10"
+                            Checked="ToggleButton_OnChecked" />
+                        <Label
+                            Grid.Column="1"
+                            FontSize="10"
+                            Content="Encryption"
+                            Margin="10"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center" />
+                    </Grid>
+
+                    <!-- ENCRYPTION KEY-->
+                    <Grid Grid.Row="1" ColumnDefinitions="100,*">
+                        <Label
+                            Grid.Column="0"
+                            FontSize="10"
+                            Content="Encryption key:"
+                            Margin="10"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                        <TextBox
+                            Grid.Column="1"
+                            FontSize="10"
+                            Margin="10"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding EncryptionKey}" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        
+        <!-- ====================================== STATUS LABEL SECTION =========================================== -->
+        <Grid Grid.Row="3">
+            <Label
+                FontSize="10"
+                Content="{Binding StatusLabel}"
+                Margin="10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top" />
+        </Grid>
+
+        <!-- ======================================= BUTTONS SECTION =============================================== -->
+        <Grid Grid.Row="4" ColumnDefinitions="*,*">
+            <Button
+                Grid.Column="1"
+                FontSize="10"
+                Content="Save"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Click="Save_OnClick" />
+            <Button
+                Grid.Column="0"
+                FontSize="10"
+                Content="Apply"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Click="Apply_OnClick" />
+        </Grid>
+    </Grid>
+</Window>
