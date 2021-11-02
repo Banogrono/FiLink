@@ -104,9 +104,6 @@
                         </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-                <Style>
-                    
-                </Style>
             </ListBox>
         </Grid>
 

@@ -175,7 +175,7 @@ namespace FiLink.Models
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        return;
+                        break;
                     }
 
                     if (tcpListener.Pending())
@@ -191,6 +191,12 @@ namespace FiLink.Models
                             {
                                 stream.Read(buffer, 0, buffer.Length);
                                 break;
+                            }
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                stream.Close();
+                                client.Close();
+                                throw new Exception("Issued cancellation token while in connection with client.");
                             }
                         }
 
