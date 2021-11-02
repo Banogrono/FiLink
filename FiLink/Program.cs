@@ -15,23 +15,41 @@ namespace FiLink
         // yet and stuff might break.
         public static void Main(string[] args)
         {
+            ConsoleInterface cli = new ConsoleInterface();
+            var appMode = cli.ParseArguments(args);
+            
             // This cancellation token allows me to break out of any loop form outside of thread and effectively end application run. 
             CancellationTokenSource cancellationTokenSource = new();
             var token = cancellationTokenSource.Token;
 
-            // Running Identifier Service
-            Identifier(token);
+            if (appMode == 0)
+            {
+                cli.Dispose();
+                
+                if (SettingsAndConstants.EnableHostFinder)
+                {
+                    // Running Identifier Service
+                    Identifier(token);
+                }
 
-            // Running Server 
-            Server(token);
+                if (SettingsAndConstants.EnableServer)
+                {
+                    // Running Server 
+                    Server(token);
+                }
 
-            // Running GUI thread
-            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+                // Running GUI thread
+                BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            }
 
+            if (appMode == 1)
+            {
+                cli.RunCli();
+            }
+            
             // Killing the server and identifier
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
-            
         }
         
         // This starts the listeners and then a server thread if client is pending.  

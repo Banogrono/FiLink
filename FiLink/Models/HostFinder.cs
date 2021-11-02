@@ -183,7 +183,7 @@ namespace FiLink.Models
                         Console.WriteLine("Client connected.");
                         var client = tcpListener.AcceptTcpClient();
                         var stream = client.GetStream();
-                        var buffer = new byte[128]; // experimental -> does not support seek
+                        var buffer = new byte[128]; 
 
                         while (true)
                         {
