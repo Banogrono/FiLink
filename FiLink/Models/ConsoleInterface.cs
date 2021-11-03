@@ -146,8 +146,7 @@ namespace FiLink.Models
                 }
             }
         }
-
-        // todo: add args parser
+        
         public int ParseArguments(string[]? args) // todo: add default answer
         {
             if (_viewModel == null)
@@ -237,13 +236,19 @@ namespace FiLink.Models
                     {
                         Console.WriteLine("IP address and/ or file path is not correct.");
                     }
-
+                    var breakOut = false;
+                    _viewModel.FileSent += (sender, eventArgs) => breakOut = true;
                     ClearFiles();
                     ClearHosts();
                     _viewModel.SelectedFiles.Add(filePath);
                     _viewModel.SelectedHosts.Add(ip);
                     SendFiles();
-                    Thread.Sleep(1000); //todo: add some kind of await
+                    while (!breakOut)
+                    {
+                        Thread.Sleep(10); //todo: add some kind of await
+                    }
+
+                    Console.WriteLine("File sent. Quitting...");
                     return -1;
                 }
             }
@@ -267,8 +272,7 @@ namespace FiLink.Models
                 }
             }
         }
-
-
+        
         public void Dispose()
         {
             _viewModel = null;

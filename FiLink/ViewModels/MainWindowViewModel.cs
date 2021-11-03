@@ -128,6 +128,8 @@ namespace FiLink.ViewModels
             {
                 UtilityMethods.LogToFile("SendFilesAsync : " + e);
             }
+            
+            FileSent?.Invoke(null, null!);
         }
 
         /// <summary>
@@ -297,5 +299,7 @@ namespace FiLink.ViewModels
             };
             settingsWindow.Show();
         }
+
+        public EventHandler FileSent;
     }
 }
