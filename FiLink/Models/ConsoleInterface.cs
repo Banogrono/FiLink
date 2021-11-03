@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using FiLink.ViewModels;
 
 namespace FiLink.Models
@@ -140,13 +142,13 @@ namespace FiLink.Models
                 // {
                 //     break;
                 // }
-                if (File.Exists(entry))
+                if (File.Exists(entry) || Directory.Exists(entry))
                 {
-                    _viewModel.SelectedFiles.Add(entry);
+                    AddFile(entry);
                 }
             }
         }
-        
+
         public int ParseArguments(string[]? args) // todo: add default answer
         {
             if (_viewModel == null)
@@ -231,21 +233,24 @@ namespace FiLink.Models
                     var index = argsList.IndexOf("--faf");
                     var ip = args[index + 1];
                     var filePath = args[index + 2];
-
-                    if (!IPAddress.TryParse(ip, out _) || !File.Exists(filePath))
+                    var temp = File.Exists(filePath) || Directory.Exists(filePath);
+                    
+                    if (!IPAddress.TryParse(ip, out _) || !temp)
                     {
                         Console.WriteLine("IP address and/ or file path is not correct.");
+                        return -1;
                     }
+
                     var breakOut = false;
                     _viewModel.FileSent += (sender, eventArgs) => breakOut = true;
                     ClearFiles();
                     ClearHosts();
-                    _viewModel.SelectedFiles.Add(filePath);
+                    AddFile(filePath);
                     _viewModel.SelectedHosts.Add(ip);
                     SendFiles();
                     while (!breakOut)
                     {
-                        Thread.Sleep(10); //todo: add some kind of await
+                        Thread.Sleep(10);
                     }
 
                     Console.WriteLine("File sent. Quitting...");
@@ -272,7 +277,28 @@ namespace FiLink.Models
                 }
             }
         }
-        
+
+        private void AddFile(string path)
+        {
+            if (File.Exists(path))
+            {
+                _viewModel?.SelectedFiles.Add(path);
+            }
+            else if (Directory.Exists(path))
+            {
+                if (!Directory.Exists(SettingsAndConstants.TempFilesDir))
+                {
+                    Directory.CreateDirectory(SettingsAndConstants.TempFilesDir);
+                }
+
+                var slash = UtilityMethods.IsUnix() ? "/" : @"\";
+                var compressedDirName = Path.GetFileName(path) + ".zip";
+                var result = SettingsAndConstants.TempFilesDir + slash + compressedDirName;
+                ZipFile.CreateFromDirectory(path, result);
+                _viewModel?.SelectedFiles.Add(result);
+            }
+        }
+
         public void Dispose()
         {
             _viewModel = null;
