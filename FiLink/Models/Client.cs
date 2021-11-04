@@ -21,6 +21,8 @@ namespace FiLink.Models
 
         public bool EncryptionEnabled = false;
         private int _encryptionKey = 696969;
+        
+        public static bool EnableConsoleLog { get; set; } = SettingsAndConstants.EnableConsoleLog;
 
         // =============================================================================================================
         // Constructors
@@ -52,7 +54,7 @@ namespace FiLink.Models
                 
                 foreach (var fileChunk in filePaths)
                 {
-                    Console.WriteLine("sending: " + fileChunk);
+                    if (EnableConsoleLog) Console.WriteLine("sending: " + fileChunk);
                     EstablishConnectionAndSendFile(fileChunk);
                     Thread.Sleep(50);
                 }
@@ -105,7 +107,7 @@ namespace FiLink.Models
             {
                 _infoChannel = new TcpClient();
                 _dataChannel = new TcpClient();
-                Console.WriteLine("connecting...");
+                if (EnableConsoleLog) Console.WriteLine("connecting...");
                 _infoChannel.Connect(_ip, Port - 2);
                 _dataChannel.Connect(_ip, Port);
                 _infoStream = _infoChannel.GetStream();
@@ -124,7 +126,7 @@ namespace FiLink.Models
         private void Close()
         {
             Task.Delay(500);
-            Console.WriteLine("client out");
+            if (EnableConsoleLog) Console.WriteLine("client out");
             _infoChannel.Close();
             _dataChannel.Close();
             OnClientClosed?.Invoke(this, null!);

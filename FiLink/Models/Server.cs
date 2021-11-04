@@ -23,6 +23,8 @@ namespace FiLink.Models
         public bool EncryptionEnabled = false;
         private int _encryptionKey = 696969;
 
+        public static bool EnableConsoleLog { get; set; } = SettingsAndConstants.EnableConsoleLog;
+
         // =============================================================================================================
         // Constructors
         // =============================================================================================================
@@ -62,7 +64,7 @@ namespace FiLink.Models
         {
             try
             {
-                Console.WriteLine("Client Connected");   
+                if (EnableConsoleLog) Console.WriteLine("Client Connected");   
                 if (!Directory.Exists(_directory)) Directory.CreateDirectory(_directory);
                 string fileName = "";
                 while (true)
@@ -70,7 +72,7 @@ namespace FiLink.Models
                     SendInformation("ready");
 
                     var response = ReceiveCallback();
-                    Console.WriteLine(response);
+                    if (EnableConsoleLog) Console.WriteLine(response);
                     if (response == null) return;
 
                     if (response.Contains("server_stop:" + _sessionKey)) break;
@@ -83,7 +85,7 @@ namespace FiLink.Models
                     var fileSize = int.Parse(fileInfo[2]);
                     if (fileSize == 0) return;
 
-                    Console.WriteLine("receiving: " + fileName);
+                    if (EnableConsoleLog) Console.WriteLine("receiving: " + fileName);
                     var savingPath = UtilityMethods.IsUnix() ? $"{_directory}/{fileName}" : $@"{_directory}\{fileName}";
                     GetFile(savingPath, fileSize);
                     OnFileReceived?.Invoke(this, EventArgs.Empty);
@@ -93,12 +95,13 @@ namespace FiLink.Models
                 UtilityMethods.MergeFile(targetFileName); // merging file chunks
                 
                 Close();
-                Console.WriteLine("server out");
+                if (EnableConsoleLog) Console.WriteLine("server out");
                 OnSessionClosed?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                if (EnableConsoleLog) Console.WriteLine(e);
+                UtilityMethods.LogToFile(e.ToString());
                 throw;
             }
         }
@@ -162,7 +165,7 @@ namespace FiLink.Models
 
             if (_sessionKey != sessionKeyDecoded)
             {
-                Console.WriteLine(_sessionKey + " " + sessionKeyDecoded);
+                if (EnableConsoleLog) Console.WriteLine(_sessionKey + " " + sessionKeyDecoded);
                 throw new Exception("E: SESSION KEY DOES NOT MATCH");
             }
 
@@ -184,7 +187,8 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                if (EnableConsoleLog) Console.WriteLine(e);
+                UtilityMethods.LogToFile(e.ToString());
                 throw;
             }
         }
@@ -212,7 +216,8 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                if (EnableConsoleLog) Console.WriteLine(e);
+                UtilityMethods.LogToFile(e.ToString());
             }
         }
 
@@ -243,7 +248,9 @@ namespace FiLink.Models
             catch (Exception e)
             {
                 if (e.ToString().Contains("An existing connection was forcibly closed by the remote host"))
-                    Console.WriteLine("Got it ");
+                    return null!;
+                else
+                    UtilityMethods.LogToFile(e.ToString());
                 return null!;
             }
         }

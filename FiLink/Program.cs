@@ -94,6 +94,7 @@ namespace FiLink
         // This starts a new thread with name server that responds to request regarding hostname and availability of this host. 
         private static void Identifier(CancellationToken token)
         {
+            HostFinder.EnableConsoleLog = SettingsAndConstants.EnableConsoleLog;
             var receiverThread = new Thread(() => HostFinder.HostnameResponder(token));
             receiverThread.Start();
         }

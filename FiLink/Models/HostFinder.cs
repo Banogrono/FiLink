@@ -10,6 +10,8 @@ namespace FiLink.Models
 {
     public static class HostFinder
     {
+
+        public static bool EnableConsoleLog { get; set; } = true;
         // =============================================================================================================
         // Public Methods
         // =============================================================================================================
@@ -35,7 +37,8 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                if (EnableConsoleLog) Console.WriteLine(e.Message);
+                UtilityMethods.LogToFile(e.ToString());
                 return null!;
             }
 
@@ -45,17 +48,17 @@ namespace FiLink.Models
             for (int i = lower; i < upper; i++)
             {
                 var ip = rest + i;
-                Console.Write($"Pinging: {ip} ");
+                if (EnableConsoleLog) Console.Write($"Pinging: {ip} ");
                 var reply = ping.Send(ip, SettingsAndConstants.PingTimeout);
                 if (reply is { Status: IPStatus.Success })
                 {
-                    Console.WriteLine("- Success.");
+                    if (EnableConsoleLog) Console.WriteLine("- Success.");
 
                     ipList.Add(ip);
                 }
                 else
                 {
-                    Console.WriteLine("- Fail.");
+                    if (EnableConsoleLog) Console.WriteLine("- Fail.");
                 }
 
                 // event for progress bar 
@@ -75,7 +78,7 @@ namespace FiLink.Models
         /// <returns>List of host names and ips merged together: [hostname]:[ip]</returns>
         public static List<string> ShowHostsInMyNetwork(List<string> ips)
         {
-            Console.WriteLine("Communicating with devices...");
+            if (EnableConsoleLog) Console.WriteLine("Communicating with devices...");
             var hostList = new List<string>();
 
             foreach (var ip in ips)
@@ -101,7 +104,6 @@ namespace FiLink.Models
                     var buffer = new byte[1024];
                     while (true)
                     {
-                        //Task.Delay(50);
                         if (client.Available > 0)
                         {
                             stream.Read(buffer, 0, buffer.Length);
@@ -120,6 +122,7 @@ namespace FiLink.Models
                 }
                 catch (Exception e)
                 {
+                    if (EnableConsoleLog) Console.WriteLine(e.Message);
                     UtilityMethods.LogToFile("ShowHostsInMyNetwork : " + e);
                 }
                 finally
@@ -133,10 +136,10 @@ namespace FiLink.Models
         
         public static List<string> FindDevicesWithPortOpen(List<string> ips, int port = 4404, int timeout = 100)
         {
-            List<string> validAddresses = new List<string>();
+            List<string> validAddresses = new();
             foreach (var ip in ips)
             {
-                Console.WriteLine("Checking " + ip);
+                if (EnableConsoleLog) Console.WriteLine("Checking " + ip);
 
                 try
                 {
@@ -150,7 +153,8 @@ namespace FiLink.Models
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    if (EnableConsoleLog) Console.WriteLine(e);
+                    UtilityMethods.LogToFile(e.ToString());
                 }
             }
             return validAddresses;
@@ -180,7 +184,7 @@ namespace FiLink.Models
 
                     if (tcpListener.Pending())
                     {
-                        Console.WriteLine("Client connected.");
+                        if (EnableConsoleLog) Console.WriteLine("Client connected.");
                         var client = tcpListener.AcceptTcpClient();
                         var stream = client.GetStream();
                         var buffer = new byte[128]; 
@@ -228,11 +232,12 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
+                if (EnableConsoleLog) Console.WriteLine(e.Message);
                 UtilityMethods.LogToFile("HostnameResponder : " + e);
             }
 
             tcpListener.Stop();
-            Console.WriteLine("Receiver terminated.");
+            if (EnableConsoleLog) Console.WriteLine("Receiver terminated.");
         }
 
         // =============================================================================================================
