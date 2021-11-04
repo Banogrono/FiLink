@@ -14,14 +14,14 @@ namespace FiLink.Models
         // =============================================================================================================
         private const int Port = 4400;
         private readonly string _ip;
-        private  TcpClient _infoChannel;
+        private TcpClient _infoChannel;
         private NetworkStream _infoStream = null!;
-        private  TcpClient _dataChannel;
+        private TcpClient _dataChannel;
         private string _sessionKey;
 
         public bool EncryptionEnabled = false;
         private int _encryptionKey = 696969;
-        
+
         public static bool EnableConsoleLog { get; set; } = SettingsAndConstants.EnableConsoleLog;
 
         // =============================================================================================================
@@ -51,30 +51,37 @@ namespace FiLink.Models
                 var filename = new FileInfo(filepath).Name;
                 var filePattern = filename + ".*";
                 string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), filePattern);
-                
+
                 foreach (var fileChunk in filePaths)
                 {
                     if (EnableConsoleLog) Console.WriteLine("sending: " + fileChunk);
                     EstablishConnectionAndSendFile(fileChunk);
                     Thread.Sleep(50);
+                    OnChunkSent?.Invoke(this, filePaths.Length);
                 }
+
                 UtilityMethods.CleanupLeftoverFileChunks(filePattern, Directory.GetCurrentDirectory());
             }
             else
             {
-               EstablishConnectionAndSendFile(filepath);
+                EstablishConnectionAndSendFile(filepath);
             }
+
             var response = ReceiveCallback();
             if (!response.Contains("ready")) return;
             SendInformation("server_stop:" + _sessionKey);
             Thread.Sleep(50);
             Close();
         }
-        
+
         // =============================================================================================================
         // Private Methods
         // =============================================================================================================
-
+        
+        /// <summary>
+        /// Establishes connection with server and sends file.
+        /// </summary>
+        /// <param name="filepath">Path to file.</param>
         private void EstablishConnectionAndSendFile(string filepath)
         {
             try
@@ -266,8 +273,13 @@ namespace FiLink.Models
         public EventHandler OnClientClosed;
 
         /// <summary>
-        /// Event Invoked when Client has sent data.
+        /// Event Invoked when Client has sent all data.
         /// </summary>
         public EventHandler OnDataSent;
+
+        /// <summary>
+        /// Event Invoked when Client has sent a chunk of data.
+        /// </summary>
+        public static EventHandler<int> OnChunkSent;
     }
 }

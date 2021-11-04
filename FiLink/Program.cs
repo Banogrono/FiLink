@@ -17,7 +17,7 @@ namespace FiLink
         {
             ConsoleInterface cli = new ConsoleInterface();
             var appMode = cli.ParseArguments(args);
-            
+
             // This cancellation token allows me to break out of any loop form outside of thread and effectively end application run. 
             CancellationTokenSource cancellationTokenSource = new();
             var token = cancellationTokenSource.Token;
@@ -25,7 +25,7 @@ namespace FiLink
             if (appMode == 0)
             {
                 cli.Dispose();
-                
+
                 if (SettingsAndConstants.EnableHostFinder)
                 {
                     // Running Identifier Service
@@ -46,12 +46,12 @@ namespace FiLink
             {
                 cli.RunCli();
             }
-            
+
             // Killing the server and identifier
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
         }
-        
+
         // This starts the listeners and then a server thread if client is pending.  
         private static void Server(CancellationToken token)
         {
@@ -90,7 +90,7 @@ namespace FiLink
                 }
             }).Start();
         }
-        
+
         // This starts a new thread with name server that responds to request regarding hostname and availability of this host. 
         private static void Identifier(CancellationToken token)
         {

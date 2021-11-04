@@ -20,15 +20,15 @@ namespace FiLink.Models
         public static int EncryptionKey { get; set; }
 
         public static List<string> SessionKeys;
-        
-        public static string TempFilesDir  { get; set; }
 
-        public static bool EnableConsoleMode { get; set; } 
-        
-        public static bool EnableServer { get; set; } = true; 
-        
-        public static bool EnableHostFinder { get; set; } = true; 
-        
+        public static string TempFilesDir { get; set; }
+
+        public static bool EnableConsoleMode { get; set; }
+
+        public static bool EnableServer { get; set; } = true;
+
+        public static bool EnableHostFinder { get; set; } = true;
+
         public static bool EnableConsoleLog { get; set; } = true; // todo: get it to work
 
         // =============================================================================================================

@@ -5,13 +5,16 @@ using System.IO.Compression;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Controls;
 using FiLink.ViewModels;
 
 namespace FiLink.Models
 {
     public class ConsoleInterface : IDisposable
     {
+        // =============================================================================================================
+        // Private Fields
+        // =============================================================================================================
+
         private static readonly string _help = "Welcome to FiLink File Transfer Application!\n" +
                                                "Available arguments: \n" +
                                                "--help - opens this help.\n" +
@@ -29,126 +32,41 @@ namespace FiLink.Models
 
         private MainWindowViewModel? _viewModel = new();
 
-        private void SendFiles()
+        // =============================================================================================================
+        // Public Methods
+        // =============================================================================================================
+        
+        /// <summary>
+        /// Starts interactive command line session.
+        /// </summary>
+        public void RunCli()
         {
-            if (_viewModel == null)
+            Console.WriteLine("Welcome to FiLink File Transfer Application!");
+            Console.WriteLine("Please enter a command or enter --help to get help.");
+            while (true)
             {
-                return;
-            }
+                Console.Write("> ");
+                var input = Console.ReadLine()?.Split(" ");
+                var state = ParseArguments(input);
 
-            try
-            {
-                Console.WriteLine();
-                Task.Run(() => _viewModel.SendFiles());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                UtilityMethods.LogToFile(e.ToString());
-            }
-        }
-
-        private void ClearFiles(string file = "")
-        {
-            if (_viewModel == null)
-            {
-                return;
-            }
-
-            try
-            {
-                if (file == "")
+                if (state == -1)
                 {
-                    _viewModel.SelectedFiles.Clear();
-                }
-                else
-                {
-                    if (_viewModel.SelectedFiles.Contains(file))
-                    {
-                        _viewModel.SelectedFiles.Remove(file);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                UtilityMethods.LogToFile(e.ToString());
-            }
-        }
-
-        private void ClearHosts(string host = "")
-        {
-            if (_viewModel == null)
-            {
-                return;
-            }
-
-            try
-            {
-                if (host == "")
-                {
-                    _viewModel.SelectedHosts.Clear();
-                }
-                else
-                {
-                    if (_viewModel.SelectedHosts.Contains(host))
-                    {
-                        _viewModel.SelectedHosts.Remove(host);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                UtilityMethods.LogToFile(e.ToString());
-            }
-        }
-
-        private void GetIps(List<string> args)
-        {
-            if (_viewModel == null)
-            {
-                return;
-            }
-
-            var index = args.IndexOf("--ips");
-            for (int i = index + 1; i < args.Count; i++)
-            {
-                var entry = args[i];
-                if (entry.Contains("--"))
-                {
-                    break;
-                }
-
-                if (IPAddress.TryParse(entry, out _))
-                {
-                    _viewModel.SelectedHosts.Add(entry);
+                    return;
                 }
             }
         }
-
-        private void GetFiles(List<string> args)
-        {
-            if (_viewModel == null)
-            {
-                return;
-            }
-
-            var index = args.IndexOf("--files");
-            for (int i = index + 1; i < args.Count; i++)
-            {
-                var entry = args[i];
-                // if (entry.Contains("--")) // technically speaking file name can contain '--'...
-                // {
-                //     break;
-                // }
-                if (File.Exists(entry) || Directory.Exists(entry))
-                {
-                    AddFile(entry);
-                }
-            }
-        }
-
+        
+        /// <summary>
+        /// Parses command line arguments.
+        /// </summary>
+        /// <param name="args">Command line arguments in form of string array.</param>
+        /// <returns>Int codes indicating status:
+        /// [-3] - viewModel is null (should never happen).
+        /// [-2] - passed arguments are null.
+        /// [-1] - exit was requested or non-fatal exception occured.
+        /// [0]  - default output.
+        /// [1]  - full cli mode was selected.
+        /// </returns>
         public int ParseArguments(string[]? args) // todo: add default answer
         {
             if (_viewModel == null)
@@ -234,7 +152,7 @@ namespace FiLink.Models
                     var ip = args[index + 1];
                     var filePath = args[index + 2];
                     var temp = File.Exists(filePath) || Directory.Exists(filePath);
-                    
+
                     if (!IPAddress.TryParse(ip, out _) || !temp)
                     {
                         Console.WriteLine("IP address and/ or file path is not correct.");
@@ -260,24 +178,162 @@ namespace FiLink.Models
 
             return 0;
         }
-
-        public void RunCli()
+        
+        /// <summary>
+        /// Disposes object.
+        /// </summary>
+        public void Dispose()
         {
-            Console.WriteLine("Welcome to FiLink File Transfer Application!");
-            Console.WriteLine("Please enter a command or enter --help to get help.");
-            while (true)
-            {
-                Console.Write("> ");
-                var input = Console.ReadLine()?.Split(" ");
-                var state = ParseArguments(input);
+            _viewModel = null;
+        }
 
-                if (state == -1)
+        // =============================================================================================================
+        // Private Methods
+        // =============================================================================================================
+        
+        /// <summary>
+        /// Sends files using _viewModel's methods.
+        /// </summary>
+        private void SendFiles()
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            try
+            {
+                Console.WriteLine();
+                Task.Run(() => _viewModel.SendFiles());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                UtilityMethods.LogToFile(e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Removes all files - if not specified or removes a specified file. 
+        /// </summary>
+        /// <param name="file">(optional), file to be removed.</param>
+        private void ClearFiles(string file = "")
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (file == "")
                 {
-                    return;
+                    _viewModel.SelectedFiles.Clear();
+                }
+                else
+                {
+                    if (_viewModel.SelectedFiles.Contains(file))
+                    {
+                        _viewModel.SelectedFiles.Remove(file);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                UtilityMethods.LogToFile(e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Removes all hosts - if not specified or removes a specified host. 
+        /// </summary>
+        /// <param name="host">(optional), host to be removed.</param>
+        private void ClearHosts(string host = "")
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (host == "")
+                {
+                    _viewModel.SelectedHosts.Clear();
+                }
+                else
+                {
+                    if (_viewModel.SelectedHosts.Contains(host))
+                    {
+                        _viewModel.SelectedHosts.Remove(host);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                UtilityMethods.LogToFile(e.ToString());
+            }
+        }
+        
+        /// <summary>
+        /// Parses command line arguments for IPs and automatically adds valid ones to _viewModel; 
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
+        private void GetIps(List<string> args)
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            var index = args.IndexOf("--ips");
+            for (int i = index + 1; i < args.Count; i++)
+            {
+                var entry = args[i];
+                if (entry.Contains("--"))
+                {
+                    break;
+                }
+
+                if (IPAddress.TryParse(entry, out _))
+                {
+                    _viewModel.SelectedHosts.Add(entry);
                 }
             }
         }
 
+        /// <summary>
+        /// Parses command line arguments for files and automatically adds valid ones to _viewModel; 
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
+        private void GetFiles(List<string> args)
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            var index = args.IndexOf("--files");
+            for (int i = index + 1; i < args.Count; i++)
+            {
+                var entry = args[i];
+                // if (entry.Contains("--")) // technically speaking file name can contain '--'...
+                // {
+                //     break;
+                // }
+                if (File.Exists(entry) || Directory.Exists(entry))
+                {
+                    AddFile(entry);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Adds a file to _viewModel.
+        /// </summary>
+        /// <param name="path">Path to file.</param>
         private void AddFile(string path)
         {
             if (File.Exists(path))
@@ -297,11 +353,6 @@ namespace FiLink.Models
                 ZipFile.CreateFromDirectory(path, result);
                 _viewModel?.SelectedFiles.Add(result);
             }
-        }
-
-        public void Dispose()
-        {
-            _viewModel = null;
         }
     }
 }

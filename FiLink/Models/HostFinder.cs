@@ -10,7 +10,6 @@ namespace FiLink.Models
 {
     public static class HostFinder
     {
-
         public static bool EnableConsoleLog { get; set; } = true;
         // =============================================================================================================
         // Public Methods
@@ -133,7 +132,14 @@ namespace FiLink.Models
 
             return hostList;
         }
-        
+
+        /// <summary>
+        /// Finds all computers in local network with given port open.
+        /// </summary>
+        /// <param name="ips">List of IPs to iterate over</param>
+        /// <param name="port">Port to look for.</param>
+        /// <param name="timeout">Drop connection after N ms..</param>
+        /// <returns>List of ips with open ports.</returns>
         public static List<string> FindDevicesWithPortOpen(List<string> ips, int port = 4404, int timeout = 100)
         {
             List<string> validAddresses = new();
@@ -149,6 +155,7 @@ namespace FiLink.Models
                     {
                         validAddresses.Add(ip);
                     }
+
                     client.Dispose();
                 }
                 catch (Exception e)
@@ -157,8 +164,9 @@ namespace FiLink.Models
                     UtilityMethods.LogToFile(e.ToString());
                 }
             }
+
             return validAddresses;
-        } 
+        }
 
         /// NAME SERVER/ RECEIVER =======================================================================================
         /// <summary>
@@ -187,7 +195,7 @@ namespace FiLink.Models
                         if (EnableConsoleLog) Console.WriteLine("Client connected.");
                         var client = tcpListener.AcceptTcpClient();
                         var stream = client.GetStream();
-                        var buffer = new byte[128]; 
+                        var buffer = new byte[128];
 
                         while (true)
                         {
@@ -196,6 +204,7 @@ namespace FiLink.Models
                                 stream.Read(buffer, 0, buffer.Length);
                                 break;
                             }
+
                             if (cancellationToken.IsCancellationRequested)
                             {
                                 stream.Close();

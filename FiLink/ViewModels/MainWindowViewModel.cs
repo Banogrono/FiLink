@@ -20,6 +20,8 @@ namespace FiLink.ViewModels
 
         private string _infoLabel;
         private float _progressBarValue;
+        private int _chunksSent;
+        private int _chunksToBeSent;
 
         // ================================================================================
         // Public Fields 
@@ -56,7 +58,7 @@ namespace FiLink.ViewModels
             SelectedHosts = new ObservableCollection<string>();
 
             HostFinder.OnHostSearchProgressed += ChangeProgressBarValue;
-            
+            Client.OnChunkSent += OnChunkSent;
         }
 
         // ================================================================================
@@ -89,7 +91,6 @@ namespace FiLink.ViewModels
                     var step = 100.0F / (SelectedHosts.Count * SelectedFiles.Count);
                     foreach (var host in SelectedHosts)
                     {
-                        
                         string ip;
                         if (host.Contains(":"))
                         {
@@ -99,12 +100,12 @@ namespace FiLink.ViewModels
                         {
                             ip = host;
                         }
-                        
+
                         if (!IPAddress.TryParse(ip, out _))
                         {
                             throw new Exception("IP cannot be parsed");
                         }
-                        
+
                         foreach (var file in SelectedFiles)
                         {
                             try
@@ -128,7 +129,7 @@ namespace FiLink.ViewModels
             {
                 UtilityMethods.LogToFile("SendFilesAsync : " + e);
             }
-            
+
             FileSent?.Invoke(null, null!);
         }
 
@@ -204,7 +205,7 @@ namespace FiLink.ViewModels
         private List<string> HostsGetter(string lowIp = "192.168.1.5", string uppIp = "192.168.1.30")
         {
             var ips = HostFinder.PingDevicesWithinRange(lowIp, uppIp);
-            var list = HostFinder.FindDevicesWithPortOpen(ips);// HostFinder.ShowHostsInMyNetwork(ips);
+            var list = HostFinder.FindDevicesWithPortOpen(ips); // HostFinder.ShowHostsInMyNetwork(ips);
             InfoLabel = "Done!";
             return list;
         }
@@ -298,6 +299,16 @@ namespace FiLink.ViewModels
                 ViewModel = settingsWindowController
             };
             settingsWindow.Show();
+        }
+
+        // ================================================================================
+        // Events and Delegates 
+        // ================================================================================
+
+        private void OnChunkSent(object? sender, int progressBarMax)
+        {
+            _chunksToBeSent = progressBarMax;
+            _chunksSent++;
         }
 
         public EventHandler FileSent;

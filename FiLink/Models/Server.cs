@@ -64,7 +64,7 @@ namespace FiLink.Models
         {
             try
             {
-                if (EnableConsoleLog) Console.WriteLine("Client Connected");   
+                if (EnableConsoleLog) Console.WriteLine("Client Connected");
                 if (!Directory.Exists(_directory)) Directory.CreateDirectory(_directory);
                 string fileName = "";
                 while (true)
@@ -90,10 +90,10 @@ namespace FiLink.Models
                     GetFile(savingPath, fileSize);
                     OnFileReceived?.Invoke(this, EventArgs.Empty);
                 }
-                
+
                 var targetFileName = fileName.Remove(fileName.LastIndexOf(".", StringComparison.Ordinal));
                 UtilityMethods.MergeFile(targetFileName); // merging file chunks
-                
+
                 Close();
                 if (EnableConsoleLog) Console.WriteLine("server out");
                 OnSessionClosed?.Invoke(this, EventArgs.Empty);

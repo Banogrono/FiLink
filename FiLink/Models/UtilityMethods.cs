@@ -41,10 +41,8 @@ namespace FiLink.Models
                         break;
                     }
                 }
-
                 key.Append(randomChar);
             }
-
             return key.ToString();
         }
 
@@ -102,12 +100,18 @@ namespace FiLink.Models
                         File.Delete("~errorLock");
                         break;
                     }
+
                     Thread.Sleep(100);
                 }
             });
         }
-        
-         public static int SplitFile(string inputFile)
+
+        /// <summary>
+        /// Splits large file into smaller chunks.
+        /// </summary>
+        /// <param name="inputFile"> Path to file.</param>
+        /// <returns>Number of chunks that file has been split to.</returns>
+        public static int SplitFile(string inputFile)
         {
             int chunkSize = 1024 * 1024 * 1024; // 1,073,741,824 bytes 
             var fileName = new FileInfo(inputFile).Name;
@@ -128,6 +132,7 @@ namespace FiLink.Models
                         remaining -= bytesRead;
                     }
                 }
+
                 index++;
                 Thread.Sleep(50); // experimental; perhaps try it
             }
@@ -135,15 +140,20 @@ namespace FiLink.Models
             return index; // number of packets
         }
         
+        /// <summary>
+        /// Merges chunks of file into one file.
+        /// </summary>
+        /// <param name="filename">Name of original file. This is used to create a pattern for searching for chunks.</param>
         public static void MergeFile(string filename)
         {
             try
             {
                 Console.WriteLine("Merging files...");
                 var separator = IsUnix() ? "/" : @"\";
-                var inputDirectoryPath = SettingsAndConstants.FileDirectory + separator; // + filename + ".chunks" + separator;
+                var inputDirectoryPath =
+                    SettingsAndConstants.FileDirectory + separator; // + filename + ".chunks" + separator;
                 var filePattern = filename + @".*";
-            
+
                 string[] filePaths = Directory.GetFiles(inputDirectoryPath, filePattern);
                 var fileCollection = new List<string>(filePaths);
                 fileCollection.Sort((s, s1) =>
@@ -154,7 +164,7 @@ namespace FiLink.Models
                 });
                 Console.WriteLine("Number of files: {0}.", filePaths.Length);
                 using var outputStream = File.Create(SettingsAndConstants.FileDirectory + separator + filename);
-            
+
                 foreach (var inputFilePath in fileCollection)
                 {
                     using (var inputStream = File.OpenRead(inputFilePath))
@@ -162,6 +172,7 @@ namespace FiLink.Models
                         // Buffer size can be passed as the second argument.
                         inputStream.CopyTo(outputStream);
                     }
+
                     Console.WriteLine("The file {0} has been processed.", inputFilePath);
                 }
 
@@ -174,7 +185,12 @@ namespace FiLink.Models
                 LogToFile(e.ToString());
             }
         }
-
+        
+        /// <summary>
+        /// Removes file chunks left after splitting. 
+        /// </summary>
+        /// <param name="filePattern">Searches for chunks with this file pattern.</param>
+        /// <param name="path">Path to place directory with chunks.</param>
         public static void CleanupLeftoverFileChunks(string filePattern, string path)
         {
             var leftoverFiles = GetAllFiles(filePattern, path);
@@ -196,11 +212,17 @@ namespace FiLink.Models
                 LogToFile(e.ToString());
             }
         }
-
+        
+        /// <summary>
+        /// Gets all pattern-matching files in the directory. 
+        /// </summary>
+        /// <param name="filePattern">Pattern for matching files.</param>
+        /// <param name="path">Path to directory potentially containing matching files.</param>
+        /// <returns>Array of matched files.</returns>
         public static string[] GetAllFiles(string filePattern, string path)
         {
             var separator = IsUnix() ? "/" : @"\";
-            var inputDirectoryPath = path + separator; 
+            var inputDirectoryPath = path + separator;
             string[] filePaths = Directory.GetFiles(inputDirectoryPath, filePattern);
             return filePaths;
         }
