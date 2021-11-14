@@ -195,7 +195,52 @@ namespace FiLink.ViewModels
                 HostCollection.Add(host);
             }
         }
+        
+        /// <summary>
+        /// Opens File Explorer (on Windows) or a Krusader (on Linux). 
+        /// </summary>
+        public void OpenFolder()
+        {
+            var linux = UtilityMethods.IsUnix();
+            var dir = Directory.GetCurrentDirectory() + (linux ? "/" : @"\") + SettingsAndConstants.FileDirectory;
+            if (Directory.Exists(dir))
+            {
+                string fileExplorer = UtilityMethods.IsUnix() ? "krusader" : "explorer.exe";
+                ProcessStartInfo startInfo = new()
+                {
+                    Arguments = dir,
+                    FileName = fileExplorer,
+                };
 
+                Process.Start(startInfo);
+            }
+            else
+            {
+                InfoLabel = "Directory does not exist.";
+            }
+        }
+
+        /// <summary>
+        /// Opens settings window.
+        /// </summary>
+        public void OpenSettingsWindow()
+        {
+            var settingsWindowController = new SettingsWindowViewModel()
+            {
+                ParentViewModel = this
+            };
+            var settingsWindow = new SettingsWindow()
+            {
+                DataContext = settingsWindowController,
+                ViewModel = settingsWindowController
+            };
+            settingsWindow.Show();
+        }
+
+        // ================================================================================
+        // Private Methods 
+        // ================================================================================
+        
         /// <summary>
         /// Searches for hosts in LAN and returns what it has found.
         /// </summary>
@@ -259,48 +304,7 @@ namespace FiLink.ViewModels
                 UtilityMethods.LogToFile("ChangeProgressBarValue : " + exception);
             }
         }
-
-        /// <summary>
-        /// Opens File Explorer (on Windows) or a Krusader (on Linux). 
-        /// </summary>
-        public void OpenFolder()
-        {
-            var linux = UtilityMethods.IsUnix();
-            var dir = Directory.GetCurrentDirectory() + (linux ? "/" : @"\") + SettingsAndConstants.FileDirectory;
-            if (Directory.Exists(dir))
-            {
-                string fileExplorer = UtilityMethods.IsUnix() ? "krusader" : "explorer.exe";
-                ProcessStartInfo startInfo = new()
-                {
-                    Arguments = dir,
-                    FileName = fileExplorer,
-                };
-
-                Process.Start(startInfo);
-            }
-            else
-            {
-                InfoLabel = "Directory does not exist.";
-            }
-        }
-
-        /// <summary>
-        /// Opens settings window.
-        /// </summary>
-        public void OpenSettingsWindow()
-        {
-            var settingsWindowController = new SettingsWindowViewModel()
-            {
-                ParentViewModel = this
-            };
-            var settingsWindow = new SettingsWindow()
-            {
-                DataContext = settingsWindowController,
-                ViewModel = settingsWindowController
-            };
-            settingsWindow.Show();
-        }
-
+        
         // ================================================================================
         // Events and Delegates 
         // ================================================================================

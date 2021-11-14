@@ -10,7 +10,7 @@ namespace FiLink.Models
     public class Server
     {
         // =============================================================================================================
-        // Fields
+        // Private Fields
         // =============================================================================================================
         private const int Port = 4400;
         private string _directory;
@@ -19,28 +19,31 @@ namespace FiLink.Models
         private TcpClient _infoChannel, _dataChannel;
         private NetworkStream _infoStream;
         private string _sessionKey;
-
-        public bool EncryptionEnabled = false;
         private int _encryptionKey = 696969;
-
+        
+        // =============================================================================================================
+        // Public Fields
+        // =============================================================================================================
+        public bool EncryptionEnabled = false;
         public static bool EnableConsoleLog { get; set; } = SettingsAndConstants.EnableConsoleLog;
 
         // =============================================================================================================
         // Constructors
         // =============================================================================================================
-        public Server(string dataDirectory = "Received_Files")
-        {
-            _infoListener = new TcpListener(IPAddress.Any, Port - 2);
-            _dataListener = new TcpListener(IPAddress.Any, Port);
-
-            _infoListener.Start();
-            _dataListener.Start();
-
-            _directory = dataDirectory;
-            _sessionKey = null!;
-
-            Connect();
-        }
+        
+        // public Server(string dataDirectory = "Received_Files")
+        // {
+        //     _infoListener = new TcpListener(IPAddress.Any, Port - 2);
+        //     _dataListener = new TcpListener(IPAddress.Any, Port);
+        //
+        //     _infoListener.Start();
+        //     _dataListener.Start();
+        //
+        //     _directory = dataDirectory;
+        //     _sessionKey = null!;
+        //
+        //     Connect();
+        // } TODO: remove this 
 
         public Server(ref TcpClient infoChannel, ref TcpClient dataChannel, string dataDirectory = "Received_Files")
         {

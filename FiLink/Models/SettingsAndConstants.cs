@@ -71,7 +71,7 @@ namespace FiLink.Models
         /// <returns>SerializableSettings object with data.</returns>
         public static SerializableSettings GetSerializableSettings()
         {
-            return new SerializableSettings(LogFileName, SavedHostsFileName, "settings.xml", LowerIpAddress,
+            return new SerializableSettings(LogFileName, SavedHostsFileName, LowerIpAddress,
                 UpperIpAddress, FileDirectory, PingTimeout);
         }
 

@@ -10,7 +10,7 @@ namespace FiLink.Models
     public class Client
     {
         // =============================================================================================================
-        // Fields
+        // Private Fields
         // =============================================================================================================
         private const int Port = 4400;
         private readonly string _ip;
@@ -18,10 +18,13 @@ namespace FiLink.Models
         private NetworkStream _infoStream = null!;
         private TcpClient _dataChannel;
         private string _sessionKey;
+        private int _encryptionKey = 696969;
+        
+        // =============================================================================================================
+        // Public Fields
+        // =============================================================================================================
 
         public bool EncryptionEnabled = false;
-        private int _encryptionKey = 696969;
-
         public static bool EnableConsoleLog { get; set; } = SettingsAndConstants.EnableConsoleLog;
 
         // =============================================================================================================
