@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -123,12 +124,17 @@ namespace FiLink.Views
                 {
                     Directory.CreateDirectory(SettingsAndConstants.TempFilesDir);
                 }
-
-                var slash = UtilityMethods.IsUnix() ? "/" : @"\";
-                var compressedDirName =  Path.GetFileName(path) + ".zip";
-                var result = SettingsAndConstants.TempFilesDir + slash + compressedDirName;
-                ZipFile.CreateFromDirectory(path, result);
-                ViewModel.FileCollection.Add(result);
+                
+                new Task(() =>
+                {
+                    ViewModel.InfoLabel = "Preparing directory...";
+                    var slash = UtilityMethods.IsUnix() ? "/" : @"\";
+                    var compressedDirName =  Path.GetFileName(path) + ".zip";
+                    var result = SettingsAndConstants.TempFilesDir + slash + compressedDirName;
+                    ZipFile.CreateFromDirectory(path, result);
+                    ViewModel.FileCollection.Add(result);
+                    ViewModel.InfoLabel = "Directory prepared";
+                }).Start(); // should fix issue #5
             }
         }
 
