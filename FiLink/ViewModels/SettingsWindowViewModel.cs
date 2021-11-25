@@ -28,16 +28,7 @@ namespace FiLink.ViewModels
         public string FileFolder
         {
             get => _fileFolder;
-            set
-            {
-                if (CheckFileFolder(value))
-                {
-                    StatusLabel = "";
-                    this.RaiseAndSetIfChanged(ref _fileFolder, value);
-                    return;
-                }
-                StatusLabel = "File directory path is invalid.";
-            }
+            set => this.RaiseAndSetIfChanged(ref _fileFolder, value);
         }
 
         public bool Encryption
@@ -49,45 +40,19 @@ namespace FiLink.ViewModels
         public string EncryptionKey
         {
             get => _encryptionKey;
-            set {
-                if (CheckEncryptionKey(value))
-                {
-                    StatusLabel = "";
-                    this.RaiseAndSetIfChanged(ref _encryptionKey, value);
-                    return;
-                }  
-                StatusLabel = "Encryption key is invalid.";
-            }
+            set => this.RaiseAndSetIfChanged(ref _encryptionKey, value);
         }
 
         public string IpRange
         {
             get => _ipRange;
-            set
-            {
-                if (CheckIpRange(value))
-                {
-                    StatusLabel = "";
-                    this.RaiseAndSetIfChanged(ref _ipRange, value);
-                    return;
-                }
-                StatusLabel = "Entered IP Range is invalid";
-            }
+            set => this.RaiseAndSetIfChanged(ref _ipRange, value);
         }
-        
+
         public string HostIp
         {
             get => _hostIp;
-            set
-            {
-                if (CheckNewHostIp(value))
-                {
-                    StatusLabel = "";
-                    this.RaiseAndSetIfChanged(ref _hostIp, value);
-                    return;
-                }  
-                StatusLabel = "Entered IP address is invalid.";
-            }
+            set => this.RaiseAndSetIfChanged(ref _hostIp, value);
         }
 
         public string StatusLabel
@@ -95,7 +60,8 @@ namespace FiLink.ViewModels
             get => _statusLabel;
             set => this.RaiseAndSetIfChanged(ref _statusLabel, value);
         }
-        
+
+        // todo: think about such implementation for other properties 
         public string PingTimeout
         {
             get => _pingTimeout;
@@ -108,6 +74,7 @@ namespace FiLink.ViewModels
                     this.RaiseAndSetIfChanged(ref _pingTimeout, value);
                     return;
                 }
+
                 StatusLabel = "Ping timeout is invalid";
             }
         }
@@ -137,31 +104,30 @@ namespace FiLink.ViewModels
         /// </summary>
         public void ApplySettings()
         {
-            if (!CheckFileFolder(FileFolder))
+            var dirOk = CheckFileFolder(FileFolder);
+            if (!dirOk)
             {
-                StatusLabel = "Entered file directory path is incorrect.";
+                StatusLabel = "File directory path is incorrect.";
                 return;
             }
-            
-            if (!CheckNewHostIp(HostIp))
+
+            var newHostOk = CheckNewHostIp(HostIp);
+            if (!newHostOk)
             {
-                StatusLabel = "Entered IP address is invalid.";
+                StatusLabel = "Host IP is incorrect.";
                 return;
             }
-            ParentViewModel.HostCollection?.Add(HostIp);
-            
+
             if (!CheckIpRange(IpRange))
             {
-                StatusLabel = "Entered IP Range is invalid";
                 return;
             }
-            
-            if (!CheckEncryptionKey(EncryptionKey))
+
+            if (CheckEncryptionKey(EncryptionKey))
             {
-                StatusLabel = "Entered encryption key is invalid";
                 return;
             }
-            
+
             StatusLabel = "All settings applied";
         }
         
@@ -221,6 +187,7 @@ namespace FiLink.ViewModels
             }
 
             if (!IPAddress.TryParse(ip, out _)) return false;
+            ParentViewModel.HostCollection?.Add(ip);
             return true;
         }
 
@@ -276,7 +243,6 @@ namespace FiLink.ViewModels
             {
                 var enKey = int.Parse(key);
                 SettingsAndConstants.EncryptionKey = enKey;
-                return true;
             }
             catch (Exception)
             {
