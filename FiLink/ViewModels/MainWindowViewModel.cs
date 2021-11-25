@@ -44,6 +44,12 @@ namespace FiLink.ViewModels
             set => this.RaiseAndSetIfChanged(ref _infoLabel, value);
         }
 
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set => this.RaiseAndSetIfChanged(ref _isEnabled, value);
+        }
+
         // ================================================================================
         // Constructors 
         // ================================================================================
@@ -57,6 +63,8 @@ namespace FiLink.ViewModels
             SelectedFiles = new ObservableCollection<string>();
             SelectedHosts = new ObservableCollection<string>();
 
+            IsEnabled = true;
+            
             HostFinder.OnHostSearchProgressed += ChangeProgressBarValue;
             Client.OnChunkSent += OnChunkSent;
         }
@@ -211,7 +219,7 @@ namespace FiLink.ViewModels
                     Arguments = dir,
                     FileName = fileExplorer,
                 };
-
+        
                 Process.Start(startInfo);
             }
             else
@@ -234,6 +242,7 @@ namespace FiLink.ViewModels
                 DataContext = settingsWindowController,
                 ViewModel = settingsWindowController
             };
+            IsEnabled = false;
             settingsWindow.Show();
         }
 
@@ -316,5 +325,6 @@ namespace FiLink.ViewModels
         }
 
         public EventHandler FileSent;
+        private bool _isEnabled = true;
     }
 }

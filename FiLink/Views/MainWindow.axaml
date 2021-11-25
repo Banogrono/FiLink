@@ -12,7 +12,9 @@
         Icon="/Assets/FiLinkIco.png"
         KeyUp="InputElement_OnKeyUp"
         Initialized="Window_OnInitialized"
-        Title="FiLink">
+        Title="FiLink"
+        IsEnabled="{Binding IsEnabled}"
+        >
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
