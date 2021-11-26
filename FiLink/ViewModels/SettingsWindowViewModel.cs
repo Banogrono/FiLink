@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Xml.Serialization;
 using FiLink.Models;
@@ -137,32 +138,46 @@ namespace FiLink.ViewModels
         /// </summary>
         public void ApplySettings()
         {
-            if (!CheckFileFolder(FileFolder))
+            try
             {
-                StatusLabel = "Entered file directory path is incorrect.";
-                return;
-            }
+                if (!CheckFileFolder(FileFolder))
+                {
+                    StatusLabel = "Entered file directory path is incorrect.";
+                    return;
+                }
             
-            if (!CheckNewHostIp(HostIp))
+                if (!CheckNewHostIp(HostIp))
+                {
+                    StatusLabel = "Entered IP address is invalid.";
+                    return;
+                }
+
+                if (CheckIfIpAddressExists(HostIp))
+                {
+                    StatusLabel = "That host address already exists.";
+                    return;
+                }
+                ParentViewModel.HostCollection?.Add(HostIp);
+            
+                if (!CheckIpRange(IpRange))
+                {
+                    StatusLabel = "Entered IP Range is invalid";
+                    return;
+                }
+            
+                if (!CheckEncryptionKey(EncryptionKey))
+                {
+                    StatusLabel = "Entered encryption key is invalid";
+                    return;
+                }
+            
+                StatusLabel = "All settings applied";
+            }
+            catch (Exception e)
             {
-                StatusLabel = "Entered IP address is invalid.";
-                return;
+                UtilityMethods.LogToFile(e.ToString());
+                StatusLabel = "Something gone wrong...";
             }
-            ParentViewModel.HostCollection?.Add(HostIp);
-            
-            if (!CheckIpRange(IpRange))
-            {
-                StatusLabel = "Entered IP Range is invalid";
-                return;
-            }
-            
-            if (!CheckEncryptionKey(EncryptionKey))
-            {
-                StatusLabel = "Entered encryption key is invalid";
-                return;
-            }
-            
-            StatusLabel = "All settings applied";
         }
         
         /// <summary>
@@ -188,6 +203,21 @@ namespace FiLink.ViewModels
         // ================================================================================
         // Private Methods
         // ================================================================================
+        
+        /// <summary>
+        /// Checks if given IP address already exists in IP collection.
+        /// </summary>
+        /// <param name="ipAddress"> New IP address</param>
+        /// <returns>True if address does exist, and false if it does not exist.</returns>
+        /// <exception cref="Exception">Throws exception when Host IP collection (ParentViewModel.HostCollection) is a null.</exception>
+        private bool CheckIfIpAddressExists(string ipAddress)
+        {
+            if (ParentViewModel.HostCollection == null)
+            {
+                throw new Exception("Main Host collection is null");
+            }
+            return ParentViewModel.HostCollection.Any(address => ipAddress.Contains(address));
+        }
         
         /// <summary>
         /// Checks the correctness of file folder path.
