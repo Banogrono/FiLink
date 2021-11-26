@@ -36,5 +36,15 @@
             FileDirectory = fileDirectory;
             PingTimeout = pingTimeout;
         }
+
+        public SerializableSettings()
+        {
+            LogFileName = SettingsAndConstants.LogFileName;
+            SavedHostsFileName = SettingsAndConstants.SavedHostsFileName;
+            LowerIpAddress = SettingsAndConstants.LowerIpAddress;
+            UpperIpAddress = SettingsAndConstants.UpperIpAddress;
+            FileDirectory = SettingsAndConstants.FileDirectory;
+            PingTimeout = SettingsAndConstants.PingTimeout;
+        }
     }
 }

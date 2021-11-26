@@ -123,9 +123,9 @@ namespace FiLink.ViewModels
             IpRange = SettingsAndConstants.LowerIpAddress + "-" + SettingsAndConstants.UpperIpAddress;
             HostIp = "";
             StatusLabel = "";
-            EncryptionKey = "156156";
+            EncryptionKey = SettingsAndConstants.EncryptionKey.ToString();
             Encryption = false;
-            FileFolder = "Received_Files";
+            FileFolder = SettingsAndConstants.FileDirectory;
             PingTimeout = SettingsAndConstants.PingTimeout.ToString();
         }
         
@@ -185,9 +185,9 @@ namespace FiLink.ViewModels
         /// </summary>
         public void SaveSettings()
         {
-            ApplySettings();
             try
             {
+                ApplySettings();
                 XmlSerializer xmlSerializer = new(typeof(SerializableSettings));
                 TextWriter writer = new StreamWriter("settings.xml");
                 xmlSerializer.Serialize(writer, SettingsAndConstants.GetSerializableSettings());
@@ -212,11 +212,12 @@ namespace FiLink.ViewModels
         /// <exception cref="Exception">Throws exception when Host IP collection (ParentViewModel.HostCollection) is a null.</exception>
         private bool CheckIfIpAddressExists(string ipAddress)
         {
+            if (ipAddress == "") return false;
             if (ParentViewModel.HostCollection == null)
             {
                 throw new Exception("Main Host collection is null");
             }
-            return ParentViewModel.HostCollection.Any(address => ipAddress.Contains(address));
+            return ParentViewModel.HostCollection.Any(address => ipAddress.Equals(address));
         }
         
         /// <summary>
