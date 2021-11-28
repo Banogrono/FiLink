@@ -19,46 +19,34 @@ namespace FiLink.Models
         private TcpClient _infoChannel, _dataChannel;
         private NetworkStream _infoStream;
         private string _sessionKey;
-        private int _encryptionKey = 696969;
+        private int _encryptionKey;
         
         // =============================================================================================================
         // Public Fields
         // =============================================================================================================
-        public bool EncryptionEnabled = false;
+        public bool EncryptionEnabled = SettingsAndConstants.EnableEncryption;
         public static bool EnableConsoleLog { get; set; } = SettingsAndConstants.EnableConsoleLog;
 
         // =============================================================================================================
         // Constructors
         // =============================================================================================================
         
-        // public Server(string dataDirectory = "Received_Files")
-        // {
-        //     _infoListener = new TcpListener(IPAddress.Any, Port - 2);
-        //     _dataListener = new TcpListener(IPAddress.Any, Port);
-        //
-        //     _infoListener.Start();
-        //     _dataListener.Start();
-        //
-        //     _directory = dataDirectory;
-        //     _sessionKey = null!;
-        //
-        //     Connect();
-        // } TODO: remove this 
-
-        public Server(ref TcpClient infoChannel, ref TcpClient dataChannel, string dataDirectory = "Received_Files")
+        public Server(ref TcpClient infoChannel, ref TcpClient dataChannel, string dataDirectory = "Received_Files") // todo: before removing check TUI interface - this param might be used there
         {
             _dataChannel = dataChannel;
             _infoChannel = infoChannel;
             _infoStream = _infoChannel.GetStream();
             NegotiateSessionKey();
 
-            _directory = dataDirectory;
+            _directory = SettingsAndConstants.FileDirectory;
+            _encryptionKey = SettingsAndConstants.EncryptionKey;
+
+            SettingsAndConstants.OnDirectoryChanged += SetSaveDirectory;
         }
 
         // =============================================================================================================
         // Public Methods
         // =============================================================================================================
-
 
         /// <summary>
         /// Receives files and saves them into given directory. 
@@ -108,28 +96,7 @@ namespace FiLink.Models
                 throw;
             }
         }
-
-        /// <summary>
-        /// Sets encryption key for encrypting files and info streams.
-        /// </summary>
-        /// <param name="key">Encryption key.</param>
-        public void SetEncryptionKey(int key)
-        {
-            _encryptionKey = key;
-        }
-
-        /// <summary>
-        /// Sets save directory for downloaded files. 
-        /// </summary>
-        /// <param name="path">Path of directory.</param>
-        /// <exception cref="Exception">Throws exception when given path doesnt exist.</exception>
-        public void SetSaveDirectory(string path)
-        {
-            if (!Directory.Exists(path)) throw new Exception("Directory does not exist.");
-
-            _directory = path;
-        }
-
+        
         // =============================================================================================================
         // Private Methods
         // =============================================================================================================
@@ -145,6 +112,14 @@ namespace FiLink.Models
             NegotiateSessionKey();
             _infoListener.Stop();
             _dataListener.Stop();
+        }
+        
+        /// <summary>
+        /// Sets new directory where downloaded files will be saved. Invoked via event.
+        /// </summary>
+        private void SetSaveDirectory(object? sender, EventArgs eventArgs)
+        {
+            _directory = SettingsAndConstants.FileDirectory;
         }
 
         /// <summary>
@@ -185,7 +160,8 @@ namespace FiLink.Models
                     dataReceived += bytesReceived;
                     dataLeft -= bytesReceived;
 
-                    OnDownloadProgress?.Invoke(this, EventArgs.Empty);
+                    int[] progress = { dataReceived, fileSize };
+                    OnDownloadProgress?.Invoke(this, progress);
                 }
             }
             catch (Exception e)
@@ -314,16 +290,17 @@ namespace FiLink.Models
         /// <summary>
         /// Invoked when file is downloaded.
         /// </summary>
-        public EventHandler OnFileReceived;
+        public static event EventHandler OnFileReceived;
 
         /// <summary>
         /// Invoked when session with client is closed.
         /// </summary>
-        public EventHandler OnSessionClosed;
+        public static event EventHandler OnSessionClosed;
 
         /// <summary>
-        /// Invoked on download progress of the file. 
+        /// Invoked on download progress of the file. First number in the array contains received parts,
+        /// and the second total number of file parts.
         /// </summary>
-        public EventHandler OnDownloadProgress;
+        public static event EventHandler<int[]> OnDownloadProgress;
     }
 }

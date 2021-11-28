@@ -300,6 +300,7 @@ namespace FiLink.ViewModels
         {
             if (key.Equals(""))
             {
+                Encryption = false;
                 return true;
             }
 

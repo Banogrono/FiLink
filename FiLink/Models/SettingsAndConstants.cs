@@ -13,13 +13,25 @@ namespace FiLink.Models
         // =============================================================================================================
         public static string LowerIpAddress { get; set; }
         public static string UpperIpAddress { get; set; }
-        public static string FileDirectory { get; set; }
+
+        public static string FileDirectory
+        {
+            get => _fileDirectory;
+            set {
+            _fileDirectory = value;
+            OnDirectoryChanged?.Invoke(null, null!);
+            }
+        }
+
         public static readonly string LogFileName;
         public static readonly string SavedHostsFileName;
         public static int PingTimeout { get; set; }
         public static int EncryptionKey { get; set; }
+        
+        public static bool EnableEncryption { get; set; }
 
         public static List<string> SessionKeys;
+        private static string _fileDirectory;
 
         public static string TempFilesDir { get; set; }
 
@@ -47,6 +59,7 @@ namespace FiLink.Models
                 PingTimeout = settings.PingTimeout;
                 SessionKeys = new List<string>();
                 TempFilesDir = "temp";
+                EnableEncryption = false;
             }
             else
             {
@@ -58,6 +71,7 @@ namespace FiLink.Models
                 PingTimeout = 128;
                 SessionKeys = new List<string>();
                 TempFilesDir = "temp";
+                EnableEncryption = false;
             }
         }
 
@@ -100,5 +114,12 @@ namespace FiLink.Models
                 throw;
             }
         }
+        
+        // =============================================================================================================
+        // Events 
+        // =============================================================================================================
+
+        public static event EventHandler OnDirectoryChanged;
+
     }
 }

@@ -18,7 +18,7 @@ namespace FiLink.Models
         private NetworkStream _infoStream = null!;
         private TcpClient _dataChannel;
         private string _sessionKey;
-        private int _encryptionKey = 696969;
+        private int _encryptionKey;
         
         // =============================================================================================================
         // Public Fields
@@ -36,6 +36,8 @@ namespace FiLink.Models
             _infoChannel = new TcpClient();
             _dataChannel = new TcpClient();
             _sessionKey = UtilityMethods.GenerateKey();
+            _encryptionKey = SettingsAndConstants.EncryptionKey;
+            EncryptionEnabled = SettingsAndConstants.EnableEncryption;
         }
 
         // =============================================================================================================
