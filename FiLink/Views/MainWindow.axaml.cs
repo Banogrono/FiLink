@@ -115,26 +115,34 @@ namespace FiLink.Views
         
         private async void OpenDirectoryDialogAsync()
         {
-            var dialog = new OpenFolderDialog();
-            
-            var path = await dialog.ShowAsync(this);
-            if (path != null)
+            try
             {
-                if (!Directory.Exists(SettingsAndConstants.TempFilesDir))
+                var dialog = new OpenFolderDialog();
+            
+                var path = await dialog.ShowAsync(this);
+                if (!string.IsNullOrEmpty(path)) // should fix issue #1 - crash on not selecting a folder
                 {
-                    Directory.CreateDirectory(SettingsAndConstants.TempFilesDir);
-                }
+                    if (!Directory.Exists(SettingsAndConstants.TempFilesDir))
+                    {
+                        Directory.CreateDirectory(SettingsAndConstants.TempFilesDir);
+                    }
                 
-                new Task(() =>
-                {
-                    ViewModel.InfoLabel = "Preparing directory...";
-                    var slash = UtilityMethods.IsUnix() ? "/" : @"\";
-                    var compressedDirName =  Path.GetFileName(path) + ".zip";
-                    var result = SettingsAndConstants.TempFilesDir + slash + compressedDirName;
-                    ZipFile.CreateFromDirectory(path, result);
-                    ViewModel.FileCollection.Add(result);
-                    ViewModel.InfoLabel = "Directory prepared";
-                }).Start(); // should fix issue #5
+                    new Task(() =>
+                    {
+                        var slash = UtilityMethods.IsUnix() ? "/" : @"\";
+                        var compressedDirName =  Path.GetFileName(path) + ".zip";
+                        var result = SettingsAndConstants.TempFilesDir + slash + compressedDirName;
+                        ViewModel.InfoLabel = "Preparing directory...";
+                        ZipFile.CreateFromDirectory(path, result);
+                        ViewModel.FileCollection.Add(result);
+                        ViewModel.InfoLabel = "Directory prepared";
+                    }).Start(); // should fix issue #5 - zipping folders freezes app
+                }
+            }
+            catch (Exception e)
+            {
+                UtilityMethods.LogToFile(e.ToString());
+                ViewModel.InfoLabel = "We could not open directory";
             }
         }
 
@@ -147,13 +155,7 @@ namespace FiLink.Views
         {
             ViewModel.OpenSettingsWindow();
         }
-
-        private void Window_OnInitialized(object? sender, EventArgs e)
-        {
-            //ViewModel.RefreshHosts();
-        }
-
-
+        
         private void OpenFolder_OnClick(object? sender, RoutedEventArgs e)
         {
             OpenDirectoryDialogAsync();

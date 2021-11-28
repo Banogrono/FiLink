@@ -11,7 +11,6 @@
         x:Class="FiLink.Views.MainWindow"
         Icon="/Assets/FiLinkIco.png"
         KeyUp="InputElement_OnKeyUp"
-        Initialized="Window_OnInitialized"
         Title="FiLink"
         IsEnabled="{Binding IsEnabled}"
         >
