@@ -150,11 +150,20 @@ namespace FiLink.Models
             {
                 Console.WriteLine("Merging files...");
                 var separator = IsUnix() ? "/" : @"\";
-                var inputDirectoryPath =
-                    SettingsAndConstants.FileDirectory + separator; // + filename + ".chunks" + separator;
-                var filePattern = filename + @".*";
-
+                var inputDirectoryPath = SettingsAndConstants.FileDirectory + separator; // + filename + ".chunks" + separator;
+                var filePattern = filename  + @".*"; 
+                Thread.Sleep(50);
+                
                 string[] filePaths = Directory.GetFiles(inputDirectoryPath, filePattern);
+                
+                /*
+                 *                              ========== N O T E ==========
+                 * The if statement below, checks for case when there is only one part of file, ergo was already
+                 * downloaded. This is important because it stops program from making a duplicate of a file,
+                 * which is caused by imperfect downloading/ merging mechanism.
+                 */
+                if (filePaths.Length == 1) return; // if there is just one file, it obviously does not need merging 
+                
                 var fileCollection = new List<string>(filePaths);
                 fileCollection.Sort((s, s1) =>
                 {
@@ -162,9 +171,8 @@ namespace FiLink.Models
                     var n2 = int.Parse(s1.Split(separator).Last().Split(".")[2]);
                     return n1 >= n2 ? 1 : -1;
                 });
-                Console.WriteLine("Number of files: {0}.", filePaths.Length);
-                using var outputStream = File.Create(SettingsAndConstants.FileDirectory + separator + filename);
-
+                
+                using var outputStream = File.Create(SettingsAndConstants.FileDirectory + separator + filename); // is this our problem?
                 foreach (var inputFilePath in fileCollection)
                 {
                     using (var inputStream = File.OpenRead(inputFilePath))
@@ -172,11 +180,15 @@ namespace FiLink.Models
                         // Buffer size can be passed as the second argument.
                         inputStream.CopyTo(outputStream);
                     }
-
-                    Console.WriteLine("The file {0} has been processed.", inputFilePath);
+                    
+                    if (SettingsAndConstants.EnableConsoleLog)
+                        Console.WriteLine("The file {0} has been processed.", inputFilePath);
                 }
 
-                Console.WriteLine("Files have been merged. Cleaning up...");
+                if (SettingsAndConstants.EnableConsoleLog)
+                    Console.WriteLine("Files have been merged. Cleaning up...");
+                
+                File.Delete(filename);
                 CleanupLeftoverFileChunks(filePattern, SettingsAndConstants.FileDirectory);
             }
             catch (Exception e)
@@ -194,7 +206,6 @@ namespace FiLink.Models
         public static void CleanupLeftoverFileChunks(string filePattern, string path)
         {
             var leftoverFiles = GetAllFiles(filePattern, path);
-            Console.WriteLine(leftoverFiles.Length);
             try
             {
                 Regex rg = new(@"\.[0-9]+");

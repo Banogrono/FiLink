@@ -78,12 +78,16 @@ namespace FiLink.Models
 
                     if (EnableConsoleLog) Console.WriteLine("receiving: " + fileName);
                     var savingPath = UtilityMethods.IsUnix() ? $"{_directory}/{fileName}" : $@"{_directory}\{fileName}";
-                    GetFile(savingPath, fileSize);
+                    
+                    // this saves file and caused duplicates when file was small enough to fit in buffer. Then the
+                    // merging method tried to "merge" that one small file (file that had just one part) and just copied 
+                    // it, making a duplicate.
+                    GetFile(savingPath, fileSize);  
                     OnFileReceived?.Invoke(this, EventArgs.Empty);
                 }
 
-                var targetFileName = fileName.Remove(fileName.LastIndexOf(".", StringComparison.Ordinal));
-                UtilityMethods.MergeFile(targetFileName); // merging file chunks
+                // merging file chunks
+                UtilityMethods.MergeFile(fileName.Remove(fileName.LastIndexOf(".", StringComparison.Ordinal))); 
 
                 Close();
                 if (EnableConsoleLog) Console.WriteLine("server out");
