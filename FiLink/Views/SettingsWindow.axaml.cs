@@ -38,11 +38,5 @@ namespace FiLink.Views
         {
             ViewModel.ApplySettings();
         }
-
-        protected override bool HandleClosing()
-        {
-            ViewModel.ParentViewModel.IsEnabled = true;
-            return base.HandleClosing();
-        }
     }
 }

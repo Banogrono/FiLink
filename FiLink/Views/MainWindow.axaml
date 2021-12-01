@@ -12,7 +12,6 @@
         Icon="/Assets/FiLinkIco.png"
         KeyUp="InputElement_OnKeyUp"
         Title="FiLink"
-        IsEnabled="{Binding IsEnabled}"
         >
 
     <Design.DataContext>

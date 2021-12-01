@@ -18,11 +18,13 @@ namespace FiLink
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 var viewModel = new MainWindowViewModel();
-                desktop.MainWindow = new MainWindow
+                var mainWindow = new MainWindow
                 {
                     DataContext = viewModel,
                     ViewModel = viewModel, 
                 };
+                desktop.MainWindow = mainWindow;
+                viewModel.ThisWindow = mainWindow;
             }
 
             base.OnFrameworkInitializationCompleted();

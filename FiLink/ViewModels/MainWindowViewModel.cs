@@ -6,6 +6,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Avalonia.Controls;
 using FiLink.Models;
 using FiLink.Views;
 using ReactiveUI;
@@ -31,6 +32,7 @@ namespace FiLink.ViewModels
 
         public ObservableCollection<string> SelectedHosts { get; set; }
         public ObservableCollection<string> SelectedFiles { get; set; }
+        public Window ThisWindow { get; set; }
 
         public float ProgressBarValue
         {
@@ -42,12 +44,6 @@ namespace FiLink.ViewModels
         {
             get => _infoLabel;
             set => this.RaiseAndSetIfChanged(ref _infoLabel, value);
-        }
-
-        public bool IsEnabled
-        {
-            get => _isEnabled;
-            set => this.RaiseAndSetIfChanged(ref _isEnabled, value);
         }
 
         // ================================================================================
@@ -62,8 +58,6 @@ namespace FiLink.ViewModels
 
             SelectedFiles = new ObservableCollection<string>();
             SelectedHosts = new ObservableCollection<string>();
-
-            IsEnabled = true;
             
             HostFinder.OnHostSearchProgressed += ChangeProgressBarValue;
             Client.OnChunkSent += OnChunkSent;
@@ -242,8 +236,8 @@ namespace FiLink.ViewModels
                 DataContext = settingsWindowController,
                 ViewModel = settingsWindowController
             };
-            IsEnabled = false;
-            settingsWindow.Show();
+            
+            settingsWindow.ShowDialog(ThisWindow);
         }
 
         // ================================================================================
