@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -18,7 +18,8 @@ namespace FiLink.Models
         private NetworkStream _infoStream = null!;
         private TcpClient _dataChannel;
         private string _sessionKey;
-
+        private int _encryptionKey;
+        
         // =============================================================================================================
         // Public Fields
         // =============================================================================================================
@@ -35,6 +36,7 @@ namespace FiLink.Models
             _infoChannel = new TcpClient();
             _dataChannel = new TcpClient();
             _sessionKey = UtilityMethods.GenerateKey();
+            _encryptionKey = SettingsAndConstants.EncryptionKey;
             EncryptionEnabled = SettingsAndConstants.EnableEncryption;
         }
 
@@ -48,14 +50,6 @@ namespace FiLink.Models
         /// <param name="filepath">File path to the file that should be sent.</param>
         public void Send(string filepath)
         {
-            if (EncryptionEnabled)
-            {
-                // todo: add a event to inform about encryption process? 
-                if (EnableConsoleLog) Console.WriteLine("Encrypting file");
-                Encryption.FileEncrypt(filepath, SettingsAndConstants.EncryptionPassword);
-                filepath = filepath + ".aes";
-            }
-            
             if (new FileInfo(filepath).Length > 2 * 1024 * 1024)
             {
                 UtilityMethods.SplitFile(filepath);
@@ -77,12 +71,6 @@ namespace FiLink.Models
             {
                 EstablishConnectionAndSendFile(filepath);
             }
-            
-            // delete encrypted file 
-            if (EncryptionEnabled)
-            {
-                File.Delete(filepath);
-            }
 
             var response = ReceiveCallback();
             if (!response.Contains("ready")) return;
@@ -94,7 +82,7 @@ namespace FiLink.Models
         // =============================================================================================================
         // Private Methods
         // =============================================================================================================
-
+        
         /// <summary>
         /// Establishes connection with server and sends file.
         /// </summary>
@@ -131,13 +119,13 @@ namespace FiLink.Models
             {
                 _infoChannel = new TcpClient();
                 _dataChannel = new TcpClient();
-
+                
                 // does not seem to work
                 // _infoChannel.ReceiveTimeout = 500;
                 // _dataChannel.ReceiveTimeout = 500;
                 // _infoChannel.SendTimeout = 500;
                 // _dataChannel.SendTimeout = 500;
-
+                
                 if (EnableConsoleLog) Console.WriteLine("Connecting...");
                 _infoChannel.Connect(_ip, Port - 2);
                 _dataChannel.Connect(_ip, Port);
@@ -197,6 +185,22 @@ namespace FiLink.Models
             try
             {
                 var encodedInformation = Encoding.UTF8.GetBytes(information);
+                if (EncryptionEnabled)
+                {
+                    var encryptedEncodedInformation = Encryption.Encrypt(encodedInformation, _encryptionKey);
+                    _infoStream.Write(encryptedEncodedInformation, 0, encryptedEncodedInformation.Length);
+                    _infoStream.Flush();
+                    // todo remove
+                    Console.WriteLine("C S: ");
+                    foreach (var b in encryptedEncodedInformation)
+                    {
+                        Console.Write(b);
+                    }
+                    Console.WriteLine();
+                    
+                    return;
+                }
+
                 _infoStream.Write(encodedInformation, 0, encodedInformation.Length);
                 _infoStream.Flush();
             }
@@ -238,7 +242,26 @@ namespace FiLink.Models
             {
                 var encodedCallback = new byte[_infoChannel.ReceiveBufferSize];
                 _infoStream.Read(encodedCallback, 0, encodedCallback.Length);
-                var decodedCallback = UtilityMethods.RemoveNulls(Encoding.UTF8.GetString(encodedCallback));
+                string decodedCallback;
+                if (EncryptionEnabled)
+                {
+                    // todo remove
+                    Console.WriteLine("C R: " + encodedCallback);
+                    foreach (var b in encodedCallback)
+                    {
+                        Console.Write(b);
+                    }
+                    Console.WriteLine();
+                    var decryptedCallback = Encryption.Decrypt(encodedCallback, _encryptionKey);
+                    decodedCallback = UtilityMethods.RemoveNulls(Encoding.UTF8.GetString(decryptedCallback));
+                }
+                else
+                {
+                    decodedCallback = UtilityMethods.RemoveNulls(Encoding.UTF8.GetString(encodedCallback));
+                }
+
+                Console.WriteLine(decodedCallback);
+                Console.WriteLine();
                 return decodedCallback;
             }
             catch (Exception e)

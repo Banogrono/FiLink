@@ -153,7 +153,7 @@
                             Margin="10"
                             VerticalAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Text="{Binding EncryptionKey}" />
+                            Text="{Binding EncryptionPassword}" />
                     </Grid>
                 </Grid>
             </TabItem>

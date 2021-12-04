@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -18,7 +19,8 @@ namespace FiLink.Models
         private TcpClient _infoChannel, _dataChannel;
         private NetworkStream _infoStream;
         private string _sessionKey;
-
+        private int _encryptionKey;
+        
         // =============================================================================================================
         // Public Fields
         // =============================================================================================================
@@ -28,10 +30,8 @@ namespace FiLink.Models
         // =============================================================================================================
         // Constructors
         // =============================================================================================================
-
-        public Server(ref TcpClient infoChannel, ref TcpClient dataChannel,
-            string dataDirectory =
-                "Received_Files") // todo: before removing check TUI interface - this param might be used there
+        
+        public Server(ref TcpClient infoChannel, ref TcpClient dataChannel, string dataDirectory = "Received_Files") // todo: before removing check TUI interface - this param might be used there
         {
             _dataChannel = dataChannel;
             _infoChannel = infoChannel;
@@ -39,6 +39,7 @@ namespace FiLink.Models
             NegotiateSessionKey();
 
             _directory = SettingsAndConstants.FileDirectory;
+            _encryptionKey = SettingsAndConstants.EncryptionKey;
 
             SettingsAndConstants.OnDirectoryChanged += SetSaveDirectory;
         }
@@ -77,30 +78,16 @@ namespace FiLink.Models
 
                     if (EnableConsoleLog) Console.WriteLine("receiving: " + fileName);
                     var savingPath = UtilityMethods.IsUnix() ? $"{_directory}/{fileName}" : $@"{_directory}\{fileName}";
-
+                    
                     // this saves file and caused duplicates when file was small enough to fit in buffer. Then the
                     // merging method tried to "merge" that one small file (file that had just one part) and just copied 
                     // it, making a duplicate.
-                    GetFile(savingPath, fileSize);
+                    GetFile(savingPath, fileSize);  
                     OnFileReceived?.Invoke(this, EventArgs.Empty);
                 }
 
-
                 // merging file chunks
-                var mergingRequired = UtilityMethods.MergeFile(Path.GetFileNameWithoutExtension(fileName));
-
-                if (EncryptionEnabled)
-                {
-                    if (EnableConsoleLog) Console.WriteLine("Decrypting file");
-                    var slash = UtilityMethods.IsUnix() ? "/" : @"\";
-                    var path = SettingsAndConstants.FileDirectory + slash;
-                    
-                    Encryption.FileDecrypt(
-                        path + (mergingRequired ? Path.GetFileNameWithoutExtension(fileName) : fileName),
-                        path + Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(fileName)),
-                        SettingsAndConstants.EncryptionPassword);
-                    File.Delete(path + (mergingRequired ? Path.GetFileNameWithoutExtension(fileName) : fileName));
-                }
+                UtilityMethods.MergeFile(fileName.Remove(fileName.LastIndexOf(".", StringComparison.Ordinal))); 
 
                 Close();
                 if (EnableConsoleLog) Console.WriteLine("server out");
@@ -113,7 +100,7 @@ namespace FiLink.Models
                 throw;
             }
         }
-
+        
         // =============================================================================================================
         // Private Methods
         // =============================================================================================================
@@ -130,7 +117,7 @@ namespace FiLink.Models
             _infoListener.Stop();
             _dataListener.Stop();
         }
-
+        
         /// <summary>
         /// Sets new directory where downloaded files will be saved. Invoked via event.
         /// </summary>
@@ -154,7 +141,9 @@ namespace FiLink.Models
 
             var sessionKeyEncoded = new byte[32];
             receiveSocket.Receive(sessionKeyEncoded, 0, 32, SocketFlags.None);
-            var sessionKeyDecoded = Encoding.UTF8.GetString(sessionKeyEncoded);
+            var sessionKeyDecoded = Encoding.UTF8.GetString(EncryptionEnabled
+                ? Encryption.Decrypt(sessionKeyEncoded, _encryptionKey)
+                : sessionKeyEncoded);
 
             if (_sessionKey != sessionKeyDecoded)
             {
@@ -175,7 +164,7 @@ namespace FiLink.Models
                     dataReceived += bytesReceived;
                     dataLeft -= bytesReceived;
 
-                    int[] progress = {dataReceived, fileSize};
+                    int[] progress = { dataReceived, fileSize };
                     OnDownloadProgress?.Invoke(this, progress);
                 }
             }
@@ -197,6 +186,21 @@ namespace FiLink.Models
             {
                 if (!_infoChannel.Connected) return;
                 var encodedInformation = Encoding.UTF8.GetBytes(information);
+                if (EncryptionEnabled)
+                {
+                    var encryptedEncodedInformation = Encryption.Encrypt(encodedInformation, _encryptionKey);
+                    _infoStream.Write(encryptedEncodedInformation, 0, encryptedEncodedInformation.Length);
+                    _infoStream.Flush();
+                    // todo remove
+                    Console.WriteLine("S S: ");
+                    foreach (var b in encryptedEncodedInformation)
+                    {
+                        Console.Write(b);
+                    }
+                    Console.WriteLine();
+                    return;
+                }
+
                 _infoStream.Write(encodedInformation, 0, encodedInformation.Length);
                 _infoStream.Flush();
             }
@@ -218,15 +222,41 @@ namespace FiLink.Models
                 if (!_infoChannel.Connected) return null!;
                 var encodedCallback = new byte[_infoChannel.ReceiveBufferSize];
                 _infoStream.Read(encodedCallback, 0, encodedCallback.Length);
-                var decodedCallback = UtilityMethods.RemoveNulls(Encoding.UTF8.GetString(encodedCallback));
+                string decodedCallback;
+                if (EncryptionEnabled)
+                {
+                    // todo remove
+                    Console.WriteLine("S R: ");
+                    foreach (var b in encodedCallback)
+                    {
+                        Console.Write(b);
+                    }
+                    Console.WriteLine();
+                    
+                    var decryptedCallback = Encryption.Decrypt(encodedCallback, _encryptionKey);
+                    Console.WriteLine("S DEC: ");
+                    foreach (var b in decryptedCallback)
+                    {
+                        Console.Write(b);
+                    }
+                    Console.WriteLine();
+                    decodedCallback = UtilityMethods.RemoveNulls(Encoding.UTF8.GetString(decryptedCallback));
+                }
+                else
+                {
+                    decodedCallback = UtilityMethods.RemoveNulls(Encoding.UTF8.GetString(encodedCallback));
+                }
+                
+                Console.WriteLine(decodedCallback);
+                Console.WriteLine();
                 return decodedCallback;
             }
             catch (Exception e)
             {
                 if (e.ToString().Contains("An existing connection was forcibly closed by the remote host"))
                     return null!;
-
-                UtilityMethods.LogToFile(e.ToString());
+                else
+                    UtilityMethods.LogToFile(e.ToString());
                 return null!;
             }
         }
@@ -242,7 +272,7 @@ namespace FiLink.Models
                 {
                     var receivedKey = ReceiveCallback();
                     if (receivedKey == null) throw new Exception("NegotiateSessionKey: Key cannot be a null.");
-
+                
                     if (!receivedKey.Contains("set_key:")) continue;
 
                     var key = receivedKey.Split(":")[1];

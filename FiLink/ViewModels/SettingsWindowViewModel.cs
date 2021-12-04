@@ -18,7 +18,7 @@ namespace FiLink.ViewModels
         private bool _encryption;
         private string _ipRange;
         private string _hostIp;
-        private string _encryptionKey;
+        private string _encryptionPassword;
         private string _statusLabel;
         private string _pingTimeout;
 
@@ -44,17 +44,22 @@ namespace FiLink.ViewModels
         public bool Encryption
         {
             get => _encryption;
-            set => this.RaiseAndSetIfChanged(ref _encryption, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _encryption, value);
+                SettingsAndConstants.EnableEncryption = value;
+            }
         }
 
-        public string EncryptionKey
+        public string EncryptionPassword
         {
-            get => _encryptionKey;
+            get => _encryptionPassword;
             set {
                 if (CheckEncryptionKey(value))
                 {
                     StatusLabel = "";
-                    this.RaiseAndSetIfChanged(ref _encryptionKey, value);
+                    this.RaiseAndSetIfChanged(ref _encryptionPassword, value);
+                    SettingsAndConstants.EncryptionPassword = value;
                     return;
                 }  
                 StatusLabel = "Encryption key is invalid.";
@@ -123,7 +128,7 @@ namespace FiLink.ViewModels
             IpRange = SettingsAndConstants.LowerIpAddress + "-" + SettingsAndConstants.UpperIpAddress;
             HostIp = "";
             StatusLabel = "";
-            EncryptionKey = SettingsAndConstants.EncryptionKey.ToString();
+            EncryptionPassword = SettingsAndConstants.EncryptionPassword;
             Encryption = false;
             FileFolder = SettingsAndConstants.FileDirectory;
             PingTimeout = SettingsAndConstants.PingTimeout.ToString();
@@ -165,7 +170,7 @@ namespace FiLink.ViewModels
                     return;
                 }
             
-                if (!CheckEncryptionKey(EncryptionKey))
+                if (!CheckEncryptionKey(EncryptionPassword))
                 {
                     StatusLabel = "Entered encryption key is invalid";
                     return;
@@ -306,8 +311,8 @@ namespace FiLink.ViewModels
 
             try
             {
-                var enKey = int.Parse(key);
-                SettingsAndConstants.EncryptionKey = enKey;
+                // todo add password restrictions?
+                SettingsAndConstants.EncryptionPassword = key;
                 return true;
             }
             catch (Exception)

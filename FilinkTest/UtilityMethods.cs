@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -144,7 +144,7 @@ namespace FiLink.Models
         /// Merges chunks of file into one file.
         /// </summary>
         /// <param name="filename">Name of original file. This is used to create a pattern for searching for chunks.</param>
-        public static bool MergeFile(string filename)
+        public static void MergeFile(string filename)
         {
             try
             {
@@ -162,13 +162,13 @@ namespace FiLink.Models
                  * downloaded. This is important because it stops program from making a duplicate of a file,
                  * which is caused by imperfect downloading/ merging mechanism.
                  */
-                if (filePaths.Length == 1) return false; // if there is just one file, it obviously does not need merging 
+                if (filePaths.Length == 1) return; // if there is just one file, it obviously does not need merging 
                 
                 var fileCollection = new List<string>(filePaths);
                 fileCollection.Sort((s, s1) =>
                 {
-                    var n1 = int.Parse(s.Split(separator).Last().Split(".").Last());
-                    var n2 = int.Parse(s1.Split(separator).Last().Split(".").Last());
+                    var n1 = int.Parse(s.Split(separator).Last().Split(".")[2]);
+                    var n2 = int.Parse(s1.Split(separator).Last().Split(".")[2]);
                     return n1 >= n2 ? 1 : -1;
                 });
                 
@@ -196,8 +196,6 @@ namespace FiLink.Models
                 Console.WriteLine(e.Message);
                 LogToFile(e.ToString());
             }
-
-            return true;
         }
         
         /// <summary>
@@ -239,7 +237,5 @@ namespace FiLink.Models
             string[] filePaths = Directory.GetFiles(inputDirectoryPath, filePattern);
             return filePaths;
         }
-        
-        // todo add some kind of dedicated method for logging console messages.
     }
 }

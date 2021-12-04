@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
@@ -26,7 +26,8 @@ namespace FiLink.Models
         public static readonly string LogFileName;
         public static readonly string SavedHostsFileName;
         public static int PingTimeout { get; set; }
-        public static string EncryptionPassword { get; set; }
+        public static int EncryptionKey { get; set; }
+        
         public static bool EnableEncryption { get; set; }
 
         public static List<string> SessionKeys;
@@ -40,7 +41,7 @@ namespace FiLink.Models
 
         public static bool EnableHostFinder { get; set; } = true;
 
-        public static bool EnableConsoleLog { get; set; } = true;
+        public static bool EnableConsoleLog { get; set; } = true; // todo: get it to work
 
         // =============================================================================================================
         // Constructors 
@@ -58,10 +59,10 @@ namespace FiLink.Models
                 PingTimeout = settings.PingTimeout;
                 SessionKeys = new List<string>();
                 TempFilesDir = "temp";
-                EnableEncryption = false;
+                EnableEncryption = true;
                 
                 // todo remove that later
-                EncryptionPassword = "152152";
+                EncryptionKey = 152152;
             }
             else
             {
@@ -73,10 +74,10 @@ namespace FiLink.Models
                 PingTimeout = 128;
                 SessionKeys = new List<string>();
                 TempFilesDir = "temp";
-                EnableEncryption = false;
+                EnableEncryption = true;
                 
                 // todo remove that later
-                EncryptionPassword = "152152";
+                EncryptionKey = 152152;
             }
         }
 

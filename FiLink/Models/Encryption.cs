@@ -1,83 +1,168 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace FiLink.Models
 {
+    /*
+     * ================== NOTE ==================
+     * This is a temporary implementation.
+     * A slightly modified version of https://www.codegrepper.com/code-examples/csharp/c%23+encrypt+file+with+password
+     */
+    
     public static class Encryption
     {
-        // =============================================================================================================
-        // Public Methods
-        // =============================================================================================================
+        //  Call this function to remove the key from memory after use for security
+        [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
+        public static extern bool ZeroMemory(IntPtr destination, int length);
 
         /// <summary>
-        /// This is encrypting method that uses Rijndael algorithm to encrypt data using key of lenght of 64. 
+        /// Creates a random salt that will be used to encrypt your file. This method is required on FileEncrypt.
         /// </summary>
-        /// <param name="data">Data to be encrypted.</param>
-        /// <param name="seed">Seed or key with which data will be encrypted.</param>
-        /// <returns>Encrypted data in form of byte array.</returns>
-        /// <exception cref="Exception">Seed cannot equal 0</exception>
-        public static byte[] Encrypt(byte[] data, int seed)
+        /// <returns></returns>
+        public static byte[] GenerateRandomSalt()
         {
-            if (seed == 0)
+            byte[] data = new byte[32];
+
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
             {
-                throw new Exception("Seed cannot equal 0.");
+                for (int i = 0; i < 10; i++)
+                {
+                    // File the buffer with the generated data
+                    rng.GetBytes(data);
+                }
             }
 
-            var key = UtilityMethods.GenerateKey(seed, 64);
-            DeriveBytes pdb = new PasswordDeriveBytes(key, new byte[]
-            {
-                0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d,
-                0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76
-            });
-
-            Rijndael alg = Rijndael.Create();
-            alg.Key = pdb.GetBytes(32);
-            alg.IV = pdb.GetBytes(16);
-
-            var ms = new MemoryStream();
-            var cs = new CryptoStream(ms, alg.CreateEncryptor(), CryptoStreamMode.Write);
-            cs.Write(data, 0, data.Length);
-            cs.Close();
-            var encryptedData = ms.ToArray();
-
-            return encryptedData;
+            return data;
         }
 
         /// <summary>
-        /// This is decrypting method that uses Rijndael algorithm to decrypt data using key of lenght of 64. 
+        /// Encrypts a file from its path and a plain password.
         /// </summary>
-        /// <param name="data">Data to be decrypted.</param>
-        /// <param name="seed">Seed or key with which data will be decrypted.</param>
-        /// <returns>Decrypted data in form of byte array.</returns>
-        /// <exception cref="Exception">Seed cannot equal 0</exception>
-        public static byte[] Decrypt(byte[] data, int seed)
+        /// <param name="inputFile"></param>
+        /// <param name="password"></param>
+        public static void FileEncrypt(string inputFile, string password)
         {
-            if (seed == 0)
+            //http://stackoverflow.com/questions/27645527/aes-encryption-on-large-files
+
+            //generate random salt
+            byte[] salt = GenerateRandomSalt();
+
+            //create output file name
+            FileStream fsCrypt = new FileStream(inputFile + ".aes", FileMode.Create);
+
+            //convert password string to byte arrray
+            byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
+
+            //Set Rijndael symmetric encryption algorithm
+            RijndaelManaged AES = new RijndaelManaged();
+            AES.KeySize = 256;
+            AES.BlockSize = 128;
+            AES.Padding = PaddingMode.PKCS7;
+
+            //http://stackoverflow.com/questions/2659214/why-do-i-need-to-use-the-rfc2898derivebytes-class-in-net-instead-of-directly
+            //"What it does is repeatedly hash the user password along with the salt." High iteration counts.
+            var key = new Rfc2898DeriveBytes(passwordBytes, salt, 50000);
+            AES.Key = key.GetBytes(AES.KeySize / 8);
+            AES.IV = key.GetBytes(AES.BlockSize / 8);
+
+            //Cipher modes: http://security.stackexchange.com/questions/52665/which-is-the-best-cipher-mode-and-padding-mode-for-aes-encryption
+            AES.Mode = CipherMode.CBC;
+
+            // write salt to the begining of the output file, so in this case can be random every time
+            fsCrypt.Write(salt, 0, salt.Length);
+
+            CryptoStream cs = new CryptoStream(fsCrypt, AES.CreateEncryptor(), CryptoStreamMode.Write);
+
+            FileStream fsIn = new FileStream(inputFile, FileMode.Open);
+
+            //create a buffer (1mb) so only this amount will allocate in the memory and not the whole file
+            byte[] buffer = new byte[1048576];
+            int read;
+
+            try
             {
-                throw new Exception("Seed cannot equal 0.");
+                while ((read = fsIn.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    //Application.DoEvents(); // -> for responsive GUI, using Task will be better!
+                    cs.Write(buffer, 0, read);
+                }
+
+                // Close up
+                fsIn.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+            finally
+            {
+                cs.Close();
+                fsCrypt.Close();
+            }
+        }
+
+        /// <summary>
+        /// Decrypts an encrypted file with the FileEncrypt method through its path and the plain password.
+        /// </summary>
+        /// <param name="inputFile"></param>
+        /// <param name="outputFile"></param>
+        /// <param name="password"></param>
+        public static void FileDecrypt(string inputFile, string outputFile, string password)
+        {
+            byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
+            byte[] salt = new byte[32];
+
+            FileStream fsCrypt = new FileStream(inputFile, FileMode.Open);
+            fsCrypt.Read(salt, 0, salt.Length);
+
+            RijndaelManaged AES = new RijndaelManaged();
+            AES.KeySize = 256;
+            AES.BlockSize = 128;
+            var key = new Rfc2898DeriveBytes(passwordBytes, salt, 50000);
+            AES.Key = key.GetBytes(AES.KeySize / 8);
+            AES.IV = key.GetBytes(AES.BlockSize / 8);
+            AES.Padding = PaddingMode.PKCS7;
+            AES.Mode = CipherMode.CBC;
+
+            CryptoStream cs = new CryptoStream(fsCrypt, AES.CreateDecryptor(), CryptoStreamMode.Read);
+
+            FileStream fsOut = new FileStream(outputFile, FileMode.Create);
+
+            int read;
+            byte[] buffer = new byte[1048576];
+
+            try
+            {
+                while ((read = cs.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    //Application.DoEvents();
+                    fsOut.Write(buffer, 0, read);
+                }
+            }
+            catch (CryptographicException ex_CryptographicException)
+            {
+                Console.WriteLine("CryptographicException error: " + ex_CryptographicException.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
             }
 
-            var key = UtilityMethods.GenerateKey(seed, 64);
-            DeriveBytes pdb = new PasswordDeriveBytes(key, new byte[]
+            try
             {
-                0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d,
-                0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76
-            });
-
-            var alg = Rijndael.Create();
-            alg.Key = pdb.GetBytes(32);
-            alg.IV = pdb.GetBytes(16);
-
-            var ms = new MemoryStream();
-            var cs = new CryptoStream(ms, alg.CreateDecryptor(), CryptoStreamMode.Write);
-
-            cs.Write(data, 0, data.Length);
-            cs.Close();
-            var decryptedData = ms.ToArray();
-
-            return decryptedData;
+                cs.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error by closing CryptoStream: " + ex.Message);
+            }
+            finally
+            {
+                fsOut.Close();
+                fsCrypt.Close();
+            }
         }
-        
     }
 }
