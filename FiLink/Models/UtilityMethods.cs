@@ -167,8 +167,8 @@ namespace FiLink.Models
                 var fileCollection = new List<string>(filePaths);
                 fileCollection.Sort((s, s1) =>
                 {
-                    var n1 = int.Parse(s.Split(separator).Last().Split(".")[2]);
-                    var n2 = int.Parse(s1.Split(separator).Last().Split(".")[2]);
+                    var n1 = int.Parse(s.Split(separator).Last().Split(".").Last());
+                    var n2 = int.Parse(s1.Split(separator).Last().Split(".").Last());
                     return n1 >= n2 ? 1 : -1;
                 });
                 
