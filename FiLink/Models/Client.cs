@@ -277,16 +277,16 @@ namespace FiLink.Models
         /// <summary>
         /// Event Invoked when Client closes its session.
         /// </summary>
-        public EventHandler OnClientClosed;
+        public static EventHandler? OnClientClosed;
 
         /// <summary>
         /// Event Invoked when Client has sent all data.
         /// </summary>
-        public EventHandler OnDataSent;
+        public static  EventHandler? OnDataSent;
 
         /// <summary>
         /// Event Invoked when Client has sent a chunk of data.
         /// </summary>
-        public static EventHandler<int> OnChunkSent;
+        public static EventHandler<int>? OnChunkSent;
     }
 }

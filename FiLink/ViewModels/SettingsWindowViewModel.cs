@@ -129,7 +129,7 @@ namespace FiLink.ViewModels
             HostIp = "";
             StatusLabel = "";
             EncryptionPassword = SettingsAndConstants.EncryptionPassword;
-            Encryption = false;
+            Encryption = SettingsAndConstants.EnableEncryption;
             FileFolder = SettingsAndConstants.FileDirectory;
             PingTimeout = SettingsAndConstants.PingTimeout.ToString();
         }

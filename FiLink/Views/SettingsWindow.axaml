@@ -128,7 +128,9 @@
                             Grid.Column="0"
                             HorizontalAlignment="Center"
                             Margin="10"
-                            Checked="ToggleButton_OnChecked" />
+                            Checked="ToggleButton_OnChecked"
+                            Unchecked="ToggleButton_OnUnchecked"
+                            />
                         <Label
                             Grid.Column="1"
                             FontSize="10"
@@ -137,9 +139,9 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center" />
                     </Grid>
-
+                    
                     <!-- ENCRYPTION KEY-->
-                    <Grid Grid.Row="1" ColumnDefinitions="100,*">
+                    <Grid Grid.Row="1"  ColumnDefinitions="100,*" IsEnabled="{Binding Encryption}">
                         <Label
                             Grid.Column="0"
                             FontSize="10"
@@ -154,6 +156,16 @@
                             VerticalAlignment="Center"
                             VerticalContentAlignment="Center"
                             Text="{Binding EncryptionPassword}" />
+                    </Grid>
+                    
+                    <Grid Grid.Row="2"  IsVisible="{Binding Encryption}">
+                        <Label
+                            FontSize="10"
+                            Content="Encrypting files WILL slow down sending process!"
+                            Margin="10"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center" 
+                        />
                     </Grid>
                 </Grid>
             </TabItem>

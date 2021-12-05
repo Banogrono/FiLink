@@ -25,7 +25,7 @@ namespace FiLink.Views
 
         private void ToggleButton_OnChecked(object? sender, RoutedEventArgs e)
         {
-            ViewModel.Encryption = !ViewModel.Encryption;
+            ViewModel.Encryption = true;
         }
 
         private void Save_OnClick(object? sender, RoutedEventArgs e)
@@ -37,6 +37,11 @@ namespace FiLink.Views
         private void Apply_OnClick(object? sender, RoutedEventArgs e)
         {
             ViewModel.ApplySettings();
+        }
+
+        private void ToggleButton_OnUnchecked(object? sender, RoutedEventArgs e)
+        {
+            ViewModel.Encryption = false;
         }
     }
 }

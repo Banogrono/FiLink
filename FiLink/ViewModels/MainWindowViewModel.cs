@@ -59,7 +59,12 @@ namespace FiLink.ViewModels
             SelectedFiles = new ObservableCollection<string>();
             SelectedHosts = new ObservableCollection<string>();
             
-            HostFinder.OnHostSearchProgressed += ChangeProgressBarValue;
+            // HostFinder.OnHostSearchProgressed += ChangeProgressBarValue; // todo: find a better way of doing that
+            Encryption.OnDecryptingFile += OnDecryption;
+            Encryption.OnEncryptingFile += OnEncryption;
+            Server.OnFileReceived += OnFileDownloaded;
+            Server.OnDownloadProgress += OnDownloadProgress;
+            
             Client.OnChunkSent += OnChunkSent;
         }
 
@@ -287,27 +292,6 @@ namespace FiLink.ViewModels
             return null;
         }
 
-        /// <summary>
-        /// Changes Progress Bar value; cannot be higher than 100 or lower than 0. 
-        /// </summary> 
-        /// <param name="sender">Not in use.</param>
-        /// <param name="e">Not in use.</param>
-        private void ChangeProgressBarValue(object? sender, object e)
-        {
-            try
-            {
-                var lip = int.Parse(SettingsAndConstants.LowerIpAddress.Split(".")[3]);
-                var uip = int.Parse(SettingsAndConstants.LowerIpAddress.Split(".")[3]);
-                var x = 100 / uip;
-                var step = (float)uip / lip * x;
-                ProgressBarValue += step;
-            }
-            catch (Exception exception)
-            {
-                UtilityMethods.LogToFile("ChangeProgressBarValue : " + exception);
-            }
-        }
-        
         // ================================================================================
         // Events and Delegates 
         // ================================================================================
@@ -318,7 +302,35 @@ namespace FiLink.ViewModels
             _chunksSent++;
         }
 
+        private void OnEncryption(object? sender, EventArgs progressBarMax)
+        {
+            InfoLabel = "Encrypting file...";
+        }
+        
+        private void OnDecryption(object? sender, EventArgs eventArgs)
+        {
+            InfoLabel = "Decrypting file...";
+        }
+        
+        private void OnFileDownloaded(object? sender, string filename)
+        {
+            InfoLabel = "Received: " + filename;
+        }
+        
+        private void OnDownloadProgress(object? sender, int[] values)
+        {
+            try
+            {
+                var percent = values[0] * 100.0f / values[1]; 
+                InfoLabel = percent.ToString("#.##") + "%";
+                ProgressBarValue = percent;
+            }
+            catch (Exception e)
+            {
+                UtilityMethods.LogToFile(e.ToString());
+            }
+        }
+        
         public EventHandler FileSent;
-        private bool _isEnabled = true;
     }
 }

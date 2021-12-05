@@ -63,7 +63,8 @@ namespace FiLink.Models
 
                     var response = ReceiveCallback();
                     if (EnableConsoleLog) Console.WriteLine(response);
-                    if (response == null) return;
+                    
+                    if (response == null) return; // DO NOT REMOVE
 
                     if (response.Contains("server_stop:" + _sessionKey)) break;
 
@@ -82,7 +83,7 @@ namespace FiLink.Models
                     // merging method tried to "merge" that one small file (file that had just one part) and just copied 
                     // it, making a duplicate.
                     GetFile(savingPath, fileSize);
-                    OnFileReceived?.Invoke(this, EventArgs.Empty);
+                    OnFileReceived.Invoke(this, fileName);
                 }
 
 
@@ -117,19 +118,6 @@ namespace FiLink.Models
         // =============================================================================================================
         // Private Methods
         // =============================================================================================================
-
-        /// <summary>
-        /// Connects with client.
-        /// </summary>
-        private void Connect()
-        {
-            _infoChannel = _infoListener.AcceptTcpClient();
-            _dataChannel = _dataListener.AcceptTcpClient();
-            _infoStream = _infoChannel.GetStream();
-            NegotiateSessionKey();
-            _infoListener.Stop();
-            _dataListener.Stop();
-        }
 
         /// <summary>
         /// Sets new directory where downloaded files will be saved. Invoked via event.
@@ -297,17 +285,17 @@ namespace FiLink.Models
         /// <summary>
         /// Invoked when file is downloaded.
         /// </summary>
-        public static event EventHandler OnFileReceived;
+        public static event EventHandler<string>? OnFileReceived;
 
         /// <summary>
         /// Invoked when session with client is closed.
         /// </summary>
-        public static event EventHandler OnSessionClosed;
+        public static event EventHandler? OnSessionClosed;
 
         /// <summary>
         /// Invoked on download progress of the file. First number in the array contains received parts,
         /// and the second total number of file parts.
         /// </summary>
-        public static event EventHandler<int[]> OnDownloadProgress;
+        public static event EventHandler<int[]>? OnDownloadProgress;
     }
 }
