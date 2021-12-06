@@ -11,27 +11,23 @@ namespace FiLink.Models
         // =============================================================================================================
         // Private Fields
         // =============================================================================================================
-        private const int Port = 4400;
         private string _directory;
-
-        private readonly TcpListener _infoListener, _dataListener;
-        private TcpClient _infoChannel, _dataChannel;
-        private NetworkStream _infoStream;
+        private readonly TcpClient _infoChannel;
+        private readonly TcpClient _dataChannel;
+        private readonly NetworkStream _infoStream;
         private string _sessionKey;
 
         // =============================================================================================================
         // Public Fields
         // =============================================================================================================
-        public bool EncryptionEnabled = SettingsAndConstants.EnableEncryption;
-        public static bool EnableConsoleLog { get; set; } = SettingsAndConstants.EnableConsoleLog;
-
+        public readonly bool EncryptionEnabled = SettingsAndConstants.EnableEncryption;
+        
         // =============================================================================================================
         // Constructors
         // =============================================================================================================
 
-        public Server(ref TcpClient infoChannel, ref TcpClient dataChannel,
-            string dataDirectory =
-                "Received_Files") // todo: before removing check TUI interface - this param might be used there
+        public Server(ref TcpClient infoChannel, ref TcpClient dataChannel, string dataDirectory = "Received_Files") 
+            // todo: before removing check TUI interface - this param might be used there
         {
             _dataChannel = dataChannel;
             _infoChannel = infoChannel;
@@ -54,7 +50,7 @@ namespace FiLink.Models
         {
             try
             {
-                if (EnableConsoleLog) Console.WriteLine("Client Connected");
+                UtilityMethods.Print("[II] Client connected");
                 if (!Directory.Exists(_directory)) Directory.CreateDirectory(_directory);
                 string fileName = "";
                 while (true)
@@ -62,7 +58,7 @@ namespace FiLink.Models
                     SendInformation("ready");
 
                     var response = ReceiveCallback();
-                    if (EnableConsoleLog) Console.WriteLine(response);
+                    UtilityMethods.Print( "[II] " + response);
                     
                     if (response == null) return; // DO NOT REMOVE
 
@@ -75,15 +71,16 @@ namespace FiLink.Models
                     fileName = fileInfo[1];
                     var fileSize = int.Parse(fileInfo[2]);
                     if (fileSize == 0) return;
-
-                    if (EnableConsoleLog) Console.WriteLine("receiving: " + fileName);
+                    
+                    UtilityMethods.Print("[II] receiving: " + fileName);
+                    
                     var savingPath = UtilityMethods.IsUnix() ? $"{_directory}/{fileName}" : $@"{_directory}\{fileName}";
 
                     // this saves file and caused duplicates when file was small enough to fit in buffer. Then the
                     // merging method tried to "merge" that one small file (file that had just one part) and just copied 
                     // it, making a duplicate.
                     GetFile(savingPath, fileSize);
-                    OnFileReceived.Invoke(this, fileName);
+                    OnFileReceived?.Invoke(this, fileName);
                 }
 
 
@@ -92,7 +89,7 @@ namespace FiLink.Models
 
                 if (EncryptionEnabled)
                 {
-                    if (EnableConsoleLog) Console.WriteLine("Decrypting file");
+                    UtilityMethods.Print("[II] Decrypting file");
                     var slash = UtilityMethods.IsUnix() ? "/" : @"\";
                     var path = SettingsAndConstants.FileDirectory + slash;
                     
@@ -104,12 +101,12 @@ namespace FiLink.Models
                 }
 
                 Close();
-                if (EnableConsoleLog) Console.WriteLine("server out");
+                UtilityMethods.Print("[II] Server offline");
                 OnSessionClosed?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception e)
             {
-                if (EnableConsoleLog) Console.WriteLine(e);
+                UtilityMethods.Print( "[EE] " + e.Message);
                 UtilityMethods.LogToFile(e.ToString());
                 throw;
             }
@@ -146,8 +143,7 @@ namespace FiLink.Models
 
             if (_sessionKey != sessionKeyDecoded)
             {
-                if (EnableConsoleLog) Console.WriteLine(_sessionKey + " " + sessionKeyDecoded);
-                throw new Exception("E: SESSION KEY DOES NOT MATCH");
+                throw new Exception("Sessions key do not match: " + _sessionKey + " " + sessionKeyDecoded);
             }
 
             try
@@ -169,7 +165,7 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
-                if (EnableConsoleLog) Console.WriteLine(e);
+                UtilityMethods.Print("[EE] " + e.Message);
                 UtilityMethods.LogToFile(e.ToString());
                 throw;
             }
@@ -190,7 +186,7 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
-                if (EnableConsoleLog) Console.WriteLine(e);
+                UtilityMethods.Print("[EE] " + e.Message);
                 UtilityMethods.LogToFile(e.ToString());
             }
         }
@@ -245,7 +241,7 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
-                if (EnableConsoleLog) Console.WriteLine(e.Message);
+                UtilityMethods.Print("[EE] " + e.Message);
                 UtilityMethods.LogToFile(e.ToString());
             }
         }

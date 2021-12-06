@@ -10,7 +10,6 @@ namespace FiLink.Models
 {
     public static class HostFinder
     {
-        public static bool EnableConsoleLog { get; set; } = true;
         
         // =============================================================================================================
         // Public Methods
@@ -37,7 +36,7 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
-                if (EnableConsoleLog) Console.WriteLine(e.Message);
+                UtilityMethods.Print("[EE] " + e.Message);
                 UtilityMethods.LogToFile(e.ToString());
                 return null!;
             }
@@ -48,17 +47,16 @@ namespace FiLink.Models
             for (int i = lower; i < upper; i++)
             {
                 var ip = rest + i;
-                if (EnableConsoleLog) Console.Write($"Pinging: {ip} ");
+                UtilityMethods.Print($"[II] Pinging: {ip}");
                 var reply = ping.Send(ip, SettingsAndConstants.PingTimeout);
                 if (reply is { Status: IPStatus.Success })
                 {
-                    if (EnableConsoleLog) Console.WriteLine("- Success.");
-
+                    UtilityMethods.Print(" - Success", false);
                     ipList.Add(ip);
                 }
                 else
                 {
-                    if (EnableConsoleLog) Console.WriteLine("- Fail.");
+                    UtilityMethods.Print(" - Fail", false);
                 }
 
                 // event for progress bar 
@@ -78,7 +76,7 @@ namespace FiLink.Models
         /// <returns>List of host names and ips merged together: [hostname]:[ip]</returns>
         public static List<string> ShowHostsInMyNetwork(List<string> ips)
         {
-            if (EnableConsoleLog) Console.WriteLine("Communicating with devices...");
+            UtilityMethods.Print("[II] Talking with devices...");
             var hostList = new List<string>();
 
             foreach (var ip in ips)
@@ -92,7 +90,7 @@ namespace FiLink.Models
 
                     if (!success)
                     {
-                        throw new Exception("Failed to connect.");
+                        throw new Exception("Failed to connect");
                     }
 
                     var stream = client.GetStream();
@@ -122,7 +120,7 @@ namespace FiLink.Models
                 }
                 catch (Exception e)
                 {
-                    if (EnableConsoleLog) Console.WriteLine(e.Message);
+                    UtilityMethods.Print("[EE] " + e.Message);
                     UtilityMethods.LogToFile("ShowHostsInMyNetwork : " + e);
                 }
                 finally
@@ -146,7 +144,7 @@ namespace FiLink.Models
             List<string> validAddresses = new();
             foreach (var ip in ips)
             {
-                if (EnableConsoleLog) Console.WriteLine("Checking " + ip);
+                UtilityMethods.Print("[II] Checking " + ip);
 
                 try
                 {
@@ -161,7 +159,7 @@ namespace FiLink.Models
                 }
                 catch (Exception e)
                 {
-                    if (EnableConsoleLog) Console.WriteLine(e);
+                    UtilityMethods.Print("[EE] " + e.Message);
                     UtilityMethods.LogToFile(e.ToString());
                 }
             }
@@ -193,7 +191,7 @@ namespace FiLink.Models
 
                     if (tcpListener.Pending())
                     {
-                        if (EnableConsoleLog) Console.WriteLine("Client connected.");
+                        UtilityMethods.Print("[II] Client connected");
                         var client = tcpListener.AcceptTcpClient();
                         var stream = client.GetStream();
                         var buffer = new byte[128];
@@ -242,12 +240,12 @@ namespace FiLink.Models
             }
             catch (Exception e)
             {
-                if (EnableConsoleLog) Console.WriteLine(e.Message);
+                UtilityMethods.Print("[EE] " + e.Message);
                 UtilityMethods.LogToFile("HostnameResponder : " + e);
             }
 
             tcpListener.Stop();
-            if (EnableConsoleLog) Console.WriteLine("Receiver terminated.");
+            UtilityMethods.Print("[II] Receiver module offline");
         }
 
         // =============================================================================================================

@@ -50,8 +50,7 @@ namespace FiLink.Models
         {
             if (EncryptionEnabled)
             {
-                // todo: add a event to inform about encryption process? 
-                if (EnableConsoleLog) Console.WriteLine("Encrypting file");
+                UtilityMethods.Print("[II] Encrypting file");
                 Encryption.FileEncrypt(filepath, SettingsAndConstants.EncryptionPassword);
                 filepath = filepath + ".aes";
             }
@@ -65,7 +64,7 @@ namespace FiLink.Models
 
                 foreach (var fileChunk in filePaths)
                 {
-                    if (EnableConsoleLog) Console.WriteLine("sending: " + fileChunk);
+                    UtilityMethods.Print("[II] Sending: " + fileChunk);
                     EstablishConnectionAndSendFile(fileChunk);
                     Thread.Sleep(50);
                     OnChunkSent?.Invoke(this, filePaths.Length);
@@ -132,13 +131,7 @@ namespace FiLink.Models
                 _infoChannel = new TcpClient();
                 _dataChannel = new TcpClient();
 
-                // does not seem to work
-                // _infoChannel.ReceiveTimeout = 500;
-                // _dataChannel.ReceiveTimeout = 500;
-                // _infoChannel.SendTimeout = 500;
-                // _dataChannel.SendTimeout = 500;
-
-                if (EnableConsoleLog) Console.WriteLine("Connecting...");
+                UtilityMethods.Print("[II] Connecting...");
                 _infoChannel.Connect(_ip, Port - 2);
                 _dataChannel.Connect(_ip, Port);
                 _infoStream = _infoChannel.GetStream();
@@ -157,7 +150,7 @@ namespace FiLink.Models
         private void Close()
         {
             Task.Delay(500);
-            if (EnableConsoleLog) Console.WriteLine("client out");
+            UtilityMethods.Print("[II] Client offline");
             _infoChannel.Close();
             _dataChannel.Close();
             OnClientClosed?.Invoke(this, null!);
@@ -253,7 +246,7 @@ namespace FiLink.Models
         /// </summary>
         private void NegotiateSessionKey()
         {
-            if (EnableConsoleLog) Console.WriteLine("Negotiating keys...");
+            UtilityMethods.Print("[II] Negotiating session keys...");
             while (true)
             {
                 var setKey = "set_key:" + _sessionKey;

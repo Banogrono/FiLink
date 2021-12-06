@@ -9,6 +9,7 @@ namespace FiLink.Models
      * ================== NOTE ==================
      * This is a temporary implementation.
      * A slightly modified version of https://www.codegrepper.com/code-examples/csharp/c%23+encrypt+file+with+password
+     * todo: reimplement this class
      */
     
     public static class Encryption

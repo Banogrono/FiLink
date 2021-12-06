@@ -239,7 +239,19 @@ namespace FiLink.Models
             string[] filePaths = Directory.GetFiles(inputDirectoryPath, filePattern);
             return filePaths;
         }
-        
-        // todo add some kind of dedicated method for logging console messages.
+
+        /// <summary>
+        /// Prints out messages to terminal output if such is enabled in settings.
+        /// </summary>
+        /// <param name="message"> Message to print out.</param>
+        /// <param name="newLine"></param>
+        public static void Print(string message, bool newLine = true)
+        {
+            if (SettingsAndConstants.EnableConsoleLog)
+            {
+                if (newLine) Console.WriteLine(message);
+                else Console.Write(message);
+            }
+        }
     }
 }
