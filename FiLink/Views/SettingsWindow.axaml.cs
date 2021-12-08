@@ -43,5 +43,15 @@ namespace FiLink.Views
         {
             ViewModel.Encryption = false;
         }
+
+        private void AutoFiles_OnChecked(object? sender, RoutedEventArgs e)
+        {
+            ViewModel.OpenFolderOnDownload = true;
+        }
+
+        private void AutoFiles_OnUnchecked(object? sender, RoutedEventArgs e)
+        {
+            ViewModel.OpenFolderOnDownload = false;
+        }
     }
 }

@@ -41,6 +41,8 @@ namespace FiLink.Models
         public static bool EnableHostFinder { get; set; } = true;
 
         public static bool EnableConsoleLog { get; set; } = true;
+        
+        public static bool EnableAutoOpenDownloadDir { get; set; } = true;
 
         // =============================================================================================================
         // Constructors 

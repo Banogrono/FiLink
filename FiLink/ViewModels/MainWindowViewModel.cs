@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Avalonia.Controls;
@@ -23,6 +24,8 @@ namespace FiLink.ViewModels
         private float _progressBarValue;
         private int _chunksSent;
         private int _chunksToBeSent;
+        private bool _directoryLock;
+        private int t = 0;
 
         // ================================================================================
         // Public Fields 
@@ -58,6 +61,8 @@ namespace FiLink.ViewModels
 
             SelectedFiles = new ObservableCollection<string>();
             SelectedHosts = new ObservableCollection<string>();
+
+            _directoryLock = false;
             
             // HostFinder.OnHostSearchProgressed += ChangeProgressBarValue; // todo: find a better way of doing that
             Encryption.OnDecryptingFile += OnDecryption;
@@ -202,24 +207,41 @@ namespace FiLink.ViewModels
                 HostCollection.Add(host);
             }
         }
-        
+
         /// <summary>
         /// Opens File Explorer (on Windows) or a Krusader (on Linux). 
         /// </summary>
-        public void OpenFolder()
+        public void OpenFolder() // todo opens window twice for some reason????
         {
+            if (_directoryLock) return; // only one file explorer at once
+            
+            
             var linux = UtilityMethods.IsUnix();
             var dir = Directory.GetCurrentDirectory() + (linux ? "/" : @"\") + SettingsAndConstants.FileDirectory;
             if (Directory.Exists(dir))
             {
+                t++;
                 string fileExplorer = UtilityMethods.IsUnix() ? "krusader" : "explorer.exe";
                 ProcessStartInfo startInfo = new()
                 {
                     Arguments = dir,
                     FileName = fileExplorer,
                 };
-        
-                Process.Start(startInfo);
+                
+                var directoryDialog = Process.Start(startInfo);
+                Task.Run(() =>
+                {
+                    while (true)
+                    {
+                        Thread.Sleep(100);
+                        if (directoryDialog is { HasExited: true })
+                        {
+                            InfoLabel = "lock lifted " + t;
+                            _directoryLock = false;
+                            break;
+                        }
+                    }
+                });
             }
             else
             {
@@ -315,6 +337,7 @@ namespace FiLink.ViewModels
         private void OnFileDownloaded(object? sender, string filename)
         {
             InfoLabel = "Received: " + filename;
+            OpenFolder();
         }
         
         private void OnDownloadProgress(object? sender, int[] values)

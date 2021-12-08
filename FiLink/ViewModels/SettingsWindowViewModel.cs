@@ -21,6 +21,7 @@ namespace FiLink.ViewModels
         private string _encryptionPassword;
         private string _statusLabel;
         private string _pingTimeout;
+        private bool _openFolderOnDownload;
 
         // ================================================================================
         // Public Fields 
@@ -48,6 +49,16 @@ namespace FiLink.ViewModels
             {
                 this.RaiseAndSetIfChanged(ref _encryption, value);
                 SettingsAndConstants.EnableEncryption = value;
+            }
+        }
+        
+        public bool OpenFolderOnDownload
+        {
+            get => _openFolderOnDownload;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _openFolderOnDownload, value);
+                SettingsAndConstants.EnableAutoOpenDownloadDir = value;
             }
         }
 
@@ -120,6 +131,7 @@ namespace FiLink.ViewModels
 
         public MainWindowViewModel ParentViewModel;
         
+
         // ================================================================================
         // Constructors 
         // ================================================================================
@@ -130,6 +142,7 @@ namespace FiLink.ViewModels
             StatusLabel = "";
             EncryptionPassword = SettingsAndConstants.EncryptionPassword;
             Encryption = SettingsAndConstants.EnableEncryption;
+            OpenFolderOnDownload = SettingsAndConstants.EnableAutoOpenDownloadDir;
             FileFolder = SettingsAndConstants.FileDirectory;
             PingTimeout = SettingsAndConstants.PingTimeout.ToString();
         }
