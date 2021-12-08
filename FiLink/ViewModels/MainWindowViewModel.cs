@@ -25,7 +25,6 @@ namespace FiLink.ViewModels
         private int _chunksSent;
         private int _chunksToBeSent;
         private bool _directoryLock;
-        private int t = 0;
 
         // ================================================================================
         // Public Fields 
@@ -61,7 +60,7 @@ namespace FiLink.ViewModels
 
             SelectedFiles = new ObservableCollection<string>();
             SelectedHosts = new ObservableCollection<string>();
-
+            
             _directoryLock = false;
             
             // HostFinder.OnHostSearchProgressed += ChangeProgressBarValue; // todo: find a better way of doing that
@@ -211,17 +210,13 @@ namespace FiLink.ViewModels
         /// <summary>
         /// Opens File Explorer (on Windows) or a Krusader (on Linux). 
         /// </summary>
-        public void OpenFolder() // todo opens window twice for some reason????
+        public void OpenFolder()
         {
-            if (_directoryLock) return; // only one file explorer at once
-            
-            
             var linux = UtilityMethods.IsUnix();
             var dir = Directory.GetCurrentDirectory() + (linux ? "/" : @"\") + SettingsAndConstants.FileDirectory;
             if (Directory.Exists(dir))
             {
-                t++;
-                string fileExplorer = UtilityMethods.IsUnix() ? "krusader" : "explorer.exe";
+                string fileExplorer = UtilityMethods.IsUnix() ? "thunar" : "explorer.exe"; // todo add more generic way to call FE on linux
                 ProcessStartInfo startInfo = new()
                 {
                     Arguments = dir,
@@ -236,8 +231,8 @@ namespace FiLink.ViewModels
                         Thread.Sleep(100);
                         if (directoryDialog is { HasExited: true })
                         {
-                            InfoLabel = "lock lifted " + t;
-                            _directoryLock = false;
+                            InfoLabel = "lock lifted ";
+                            
                             break;
                         }
                     }
@@ -337,7 +332,11 @@ namespace FiLink.ViewModels
         private void OnFileDownloaded(object? sender, string filename)
         {
             InfoLabel = "Received: " + filename;
-            OpenFolder();
+            if (_directoryLock == false)
+            {
+                _directoryLock = true;
+                OpenFolder();
+            }
         }
         
         private void OnDownloadProgress(object? sender, int[] values)

@@ -80,7 +80,6 @@ namespace FiLink.Models
                     // merging method tried to "merge" that one small file (file that had just one part) and just copied 
                     // it, making a duplicate.
                     GetFile(savingPath, fileSize);
-                    OnFileReceived?.Invoke(this, fileName);
                 }
 
 
@@ -103,6 +102,7 @@ namespace FiLink.Models
                 Close();
                 UtilityMethods.Print("[II] Server offline");
                 OnSessionClosed?.Invoke(this, EventArgs.Empty);
+                OnFileReceived?.Invoke(this, fileName); // this one is invoked twice - probably framework bug
             }
             catch (Exception e)
             {

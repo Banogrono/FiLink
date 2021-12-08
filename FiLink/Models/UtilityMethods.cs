@@ -148,7 +148,7 @@ namespace FiLink.Models
         {
             try
             {
-                Console.WriteLine("Merging files...");
+                Print("[II] Merging files...");
                 var separator = IsUnix() ? "/" : @"\";
                 var inputDirectoryPath = SettingsAndConstants.FileDirectory + separator; // + filename + ".chunks" + separator;
                 var filePattern = filename  + @".*"; 
