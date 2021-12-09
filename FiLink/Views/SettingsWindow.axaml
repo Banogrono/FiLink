@@ -117,6 +117,8 @@
                             Grid.Column="1"
                             HorizontalAlignment="Center"
                             Margin="10"
+                            IsThreeState="False"
+                            IsChecked="{Binding OpenFolderOnDownload}"
                             Checked="AutoFiles_OnChecked"
                             Unchecked="AutoFiles_OnUnchecked"
                         />
@@ -147,6 +149,8 @@
                             Grid.Column="0"
                             HorizontalAlignment="Center"
                             Margin="10"
+                            IsThreeState="False"
+                            IsChecked="{Binding Encryption}"
                             Checked="ToggleButton_OnChecked"
                             Unchecked="ToggleButton_OnUnchecked"
                             />
