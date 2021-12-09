@@ -66,9 +66,12 @@ namespace FiLink.ViewModels
             // HostFinder.OnHostSearchProgressed += ChangeProgressBarValue; // todo: find a better way of doing that
             Encryption.OnDecryptingFile += OnDecryption;
             Encryption.OnEncryptingFile += OnEncryption;
+            
             Server.OnFileReceived += OnFileDownloaded;
             Server.OnDownloadProgress += OnDownloadProgress;
-            
+
+            Client.OnClientUnreachable += (_, _) => { InfoLabel = "Client unreachable";};
+            Client.OnDataSent += (_, _) => { InfoLabel = "Data sent!";};
             Client.OnChunkSent += OnChunkSent;
         }
 
@@ -134,14 +137,11 @@ namespace FiLink.ViewModels
                         }
                     }
                 });
-                InfoLabel = "Files sent.";
             }
             catch (Exception e)
             {
                 UtilityMethods.LogToFile("SendFilesAsync : " + e);
             }
-
-            FileSent?.Invoke(null, null!);
         }
 
         /// <summary>
@@ -353,6 +353,5 @@ namespace FiLink.ViewModels
             }
         }
         
-        public EventHandler FileSent;
     }
 }

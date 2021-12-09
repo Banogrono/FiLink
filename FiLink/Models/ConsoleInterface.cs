@@ -160,7 +160,7 @@ namespace FiLink.Models
                     }
 
                     var breakOut = false;
-                    _viewModel.FileSent += (sender, eventArgs) => breakOut = true;
+                    Client.OnDataSent += (_, _) => breakOut = true;
                     ClearFiles();
                     ClearHosts();
                     AddFile(filePath);

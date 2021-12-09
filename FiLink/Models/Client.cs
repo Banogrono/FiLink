@@ -24,7 +24,6 @@ namespace FiLink.Models
         // =============================================================================================================
 
         public bool EncryptionEnabled;
-        public static bool EnableConsoleLog { get; set; } = SettingsAndConstants.EnableConsoleLog;
 
         // =============================================================================================================
         // Constructors
@@ -48,46 +47,55 @@ namespace FiLink.Models
         /// <param name="filepath">File path to the file that should be sent.</param>
         public void Send(string filepath)
         {
-            if (EncryptionEnabled)
+            try
             {
-                UtilityMethods.Print("[II] Encrypting file");
-                Encryption.FileEncrypt(filepath, SettingsAndConstants.EncryptionPassword);
-                filepath = filepath + ".aes";
-            }
-            
-            if (new FileInfo(filepath).Length > 2 * 1024 * 1024)
-            {
-                UtilityMethods.SplitFile(filepath);
-                var filename = new FileInfo(filepath).Name;
-                var filePattern = filename + ".*";
-                string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), filePattern);
-
-                foreach (var fileChunk in filePaths)
+                if (EncryptionEnabled)
                 {
-                    UtilityMethods.Print("[II] Sending: " + fileChunk);
-                    EstablishConnectionAndSendFile(fileChunk);
-                    Thread.Sleep(50);
-                    OnChunkSent?.Invoke(this, filePaths.Length);
+                    UtilityMethods.Print("[II] Encrypting file");
+                    Encryption.FileEncrypt(filepath, SettingsAndConstants.EncryptionPassword);
+                    filepath = filepath + ".aes";
                 }
-
-                UtilityMethods.CleanupLeftoverFileChunks(filePattern, Directory.GetCurrentDirectory());
-            }
-            else
-            {
-                EstablishConnectionAndSendFile(filepath);
-            }
             
-            // delete encrypted file 
-            if (EncryptionEnabled)
-            {
-                File.Delete(filepath);
-            }
+                if (new FileInfo(filepath).Length > 2 * 1024 * 1024)
+                {
+                    UtilityMethods.SplitFile(filepath);
+                    var filename = new FileInfo(filepath).Name;
+                    var filePattern = filename + ".*";
+                    string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), filePattern);
 
-            var response = ReceiveCallback();
-            if (!response.Contains("ready")) return;
-            SendInformation("server_stop:" + _sessionKey);
-            Thread.Sleep(50);
-            Close();
+                    foreach (var fileChunk in filePaths)
+                    {
+                        UtilityMethods.Print("[II] Sending: " + fileChunk);
+                        EstablishConnectionAndSendFile(fileChunk);
+                        Thread.Sleep(50);
+                        OnChunkSent?.Invoke(this, filePaths.Length);
+                    }
+
+                    UtilityMethods.CleanupLeftoverFileChunks(filePattern, Directory.GetCurrentDirectory());
+                }
+                else
+                {
+                    EstablishConnectionAndSendFile(filepath);
+                }
+            
+                // delete encrypted file 
+                if (EncryptionEnabled)
+                {
+                    File.Delete(filepath);
+                }
+                
+                var response = ReceiveCallback();
+                if (!response.Contains("ready")) return;
+                SendInformation("server_stop:" + _sessionKey);
+                Thread.Sleep(50);
+                Close();
+                OnDataSent?.Invoke(null, null!); // possible uses...
+            }
+            catch (Exception e)
+            {
+                UtilityMethods.Print("[EE] " + e.Message);
+                UtilityMethods.LogToFile("[EE] " + e);
+            }
         }
 
         // =============================================================================================================
@@ -104,7 +112,7 @@ namespace FiLink.Models
             {
                 if (!(_infoChannel.Connected && _dataChannel.Connected))
                 {
-                    Connect();
+                   Connect();
                 }
 
                 var response = ReceiveCallback();
@@ -118,22 +126,42 @@ namespace FiLink.Models
             catch (Exception e)
             {
                 UtilityMethods.LogToFile(e.ToString());
+                OnClientUnreachable?.Invoke(null, null!);
+                throw;
             }
         }
 
         /// <summary>
-        /// Connects to server. Operates on ports 4400 (file transmission) and 4398 [4400 - 2] (info transmission) by default.  
+        /// Connects to server. Operates on ports 4400 (file transmission) and 4398 [4400 - 2] (info transmission) by default.
         /// </summary>
-        private void Connect()
+        /// 
+        private void Connect(int connectionTimeout = 5)
         {
             try
             {
                 _infoChannel = new TcpClient();
                 _dataChannel = new TcpClient();
-
+                
                 UtilityMethods.Print("[II] Connecting...");
-                _infoChannel.Connect(_ip, Port - 2);
-                _dataChannel.Connect(_ip, Port);
+                // connecting infoChannel
+                var connectionResult = _infoChannel.BeginConnect(_ip, Port - 2, null, null);
+                var success = connectionResult.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(connectionTimeout));
+                if (!success)
+                {
+                    throw new Exception("Failed to connect [info link].");
+                }
+                _infoChannel.EndConnect(connectionResult);
+                
+                // connecting dataChannel
+                connectionResult = _dataChannel.BeginConnect(_ip, Port, null, null);
+                success = connectionResult.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(connectionTimeout));
+                if (!success)
+                {
+                    throw new Exception("Failed to connect [data link].");
+                }
+                _dataChannel.EndConnect(connectionResult);
+                UtilityMethods.Print("[II] Connection successful");
+                
                 _infoStream = _infoChannel.GetStream();
                 NegotiateSessionKey();
             }
@@ -276,6 +304,11 @@ namespace FiLink.Models
         /// Event Invoked when Client has sent all data.
         /// </summary>
         public static  EventHandler? OnDataSent;
+        
+        /// <summary>
+        /// Event Invoked when cannot connect with client (timeout, host not valid etc.).
+        /// </summary>
+        public static  EventHandler? OnClientUnreachable;
 
         /// <summary>
         /// Event Invoked when Client has sent a chunk of data.
