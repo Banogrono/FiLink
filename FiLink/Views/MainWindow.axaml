@@ -12,7 +12,10 @@
         Icon="/Assets/FiLinkIco.png"
         KeyUp="InputElement_OnKeyUp"
         Title="FiLink"
+        
         >
+    
+    
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
@@ -83,8 +86,8 @@
                 Background="#3b3b3b">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#3b3b3b">
-                            <TextBlock Foreground="White" Background="Transparent" Text="{Binding}" />
+                        <Border Classes="item" Background="#3b3b3b">
+                            <TextBlock Foreground="White" Background="Transparent" Text="{Binding}"/>
                         </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -95,11 +98,12 @@
                 Items="{Binding FileCollection}"
                 SelectedItems="{Binding SelectedFiles}"
                 Grid.Column="3"
+                Classes="list"
                 SelectionMode="Multiple,Toggle"
                 Background="#3b3b3b">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#3b3b3b">
+                        <Border Classes="item" Background="#3b3b3b">
                             <TextBlock Foreground="White" Text="{Binding}" />
                         </Border>
                     </DataTemplate>

@@ -216,7 +216,7 @@ namespace FiLink.ViewModels
             var dir = Directory.GetCurrentDirectory() + (linux ? "/" : @"\") + SettingsAndConstants.FileDirectory;
             if (Directory.Exists(dir))
             {
-                string fileExplorer = UtilityMethods.IsUnix() ? "thunar" : "explorer.exe"; // todo add more generic way to call FE on linux
+                string fileExplorer = UtilityMethods.IsUnix() ? "xdg-open" : "explorer.exe";
                 ProcessStartInfo startInfo = new()
                 {
                     Arguments = dir,
