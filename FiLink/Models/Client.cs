@@ -56,7 +56,7 @@ namespace FiLink.Models
                     filepath = filepath + ".aes";
                 }
             
-                if (new FileInfo(filepath).Length > 2 * 1024 * 1024)
+                if (new FileInfo(filepath).Length > 200 * 1024 * 1024) // 200 MiB?
                 {
                     UtilityMethods.SplitFile(filepath);
                     var filename = new FileInfo(filepath).Name;

@@ -113,7 +113,7 @@ namespace FiLink.Models
         /// <returns>Number of chunks that file has been split to.</returns>
         public static int SplitFile(string inputFile)
         {
-            int chunkSize = 1024 * 1024 * 1024; // 1,073,741,824 bytes 
+            int chunkSize = 1024 * 1024 * 200; // 200 <- change file chunk t0 200 MiB 1,073,741,824 bytes (1 GiB)
             var fileName = new FileInfo(inputFile).Name;
             const int bufferSize = 20 * 1024;
             byte[] buffer = new byte[bufferSize];
@@ -161,8 +161,22 @@ namespace FiLink.Models
                  * The if statement below, checks for case when there is only one part of file, ergo was already
                  * downloaded. This is important because it stops program from making a duplicate of a file,
                  * which is caused by imperfect downloading/ merging mechanism.
+                 *
+                 * Update - this might cause another issue - when the single downloaded file has appended part number (eg ".1")
+                 * to its name, the merge method quits before removing that additional characters. Does not change or damage
+                 * the file itself, but has impact on user experience. 
                  */
-                if (filePaths.Length == 1) return false; // if there is just one file, it obviously does not need merging 
+                if (filePaths.Length == 1)
+                {
+                    var file = filePaths[0];
+                    if (Regex.IsMatch(file, filePattern))
+                    {
+                        File.Move(file, filename);
+                        //CleanupLeftoverFileChunks(filePattern, SettingsAndConstants.FileDirectory); // todo: take a closer look at removing additional files
+                    }    
+                    return false; // if there is just one file, it obviously does not need merging 
+                }   
+                
                 
                 var fileCollection = new List<string>(filePaths);
                 fileCollection.Sort((s, s1) =>

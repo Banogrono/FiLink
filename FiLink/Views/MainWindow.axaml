@@ -123,8 +123,8 @@
 
             <!-- Menu -->
             <Menu Grid.Column="0" HorizontalAlignment="Center">
-                <MenuItem Header="☰ Menu" Foreground="White" Padding="2" Background="Transparent"
-                          Icon="/Assets/menu.png">
+                <MenuItem Header=" ☰ Menu " Foreground="White" Padding="2" Background="Transparent"
+                          Icon="/Assets/menu.png" >
                     <MenuItem Header="_Open File" Foreground="White" Background="#2b2b2b" Click="OpenFile_OnClick" />
                     <MenuItem Header="_Open Folder" Foreground="White" Background="#2b2b2b" Click="OpenFolder_OnClick" />
                     <MenuItem Header="_Refresh Hosts" Foreground="White" Background="#2b2b2b"
