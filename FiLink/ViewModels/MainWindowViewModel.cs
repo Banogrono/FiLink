@@ -208,12 +208,11 @@ namespace FiLink.ViewModels
         }
 
         /// <summary>
-        /// Opens File Explorer (on Windows) or a Krusader (on Linux). 
+        /// Opens File Explorer (on Windows) or whatever user sets as default file explorer (on Linux). 
         /// </summary>
         public void OpenFolder()
         {
-            var linux = UtilityMethods.IsUnix();
-            var dir = Directory.GetCurrentDirectory() + (linux ? "/" : @"\") + SettingsAndConstants.FileDirectory;
+            var dir = SettingsAndConstants.FileDirectory;
             if (Directory.Exists(dir))
             {
                 string fileExplorer = UtilityMethods.IsUnix() ? "xdg-open" : "explorer.exe";
@@ -223,20 +222,7 @@ namespace FiLink.ViewModels
                     FileName = fileExplorer,
                 };
                 
-                var directoryDialog = Process.Start(startInfo);
-                Task.Run(() =>
-                {
-                    while (true)
-                    {
-                        Thread.Sleep(100);
-                        if (directoryDialog is { HasExited: true })
-                        {
-                            InfoLabel = "lock lifted ";
-                            
-                            break;
-                        }
-                    }
-                });
+               Process.Start(startInfo);
             }
             else
             {
