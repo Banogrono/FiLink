@@ -81,10 +81,8 @@ namespace FiLink.Models
                     // it, making a duplicate.
                     GetFile(savingPath, fileSize);
                 }
-
-
                 // merging file chunks
-                var mergingRequired = UtilityMethods.MergeFile(Path.GetFileNameWithoutExtension(fileName));
+                var mergingRequired =  UtilityMethods.MergeFile(Path.GetFileNameWithoutExtension(fileName));
 
                 if (EncryptionEnabled)
                 {
@@ -101,7 +99,7 @@ namespace FiLink.Models
 
                 Close();
                 UtilityMethods.Print("[II] Server offline");
-                OnSessionClosed?.Invoke(this, EventArgs.Empty);
+               
                 OnFileReceived?.Invoke(this, fileName); // this one is invoked twice - probably framework bug
             }
             catch (Exception e)
@@ -269,9 +267,13 @@ namespace FiLink.Models
         /// </summary>
         private void Close()
         {
-            _infoStream.Close();
-            _dataChannel.Close();
-            _infoChannel.Close();
+            if (_infoChannel.Connected)
+            {
+                _infoStream.Close();
+                _dataChannel.Close();
+                _infoChannel.Close();
+                OnSessionClosed?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         // =============================================================================================================

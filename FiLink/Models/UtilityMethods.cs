@@ -171,8 +171,7 @@ namespace FiLink.Models
                     var file = filePaths[0];
                     if (Regex.IsMatch(file, filePattern))
                     {
-                        File.Move(file, filename);
-                        //CleanupLeftoverFileChunks(filePattern, SettingsAndConstants.FileDirectory); // todo: take a closer look at removing additional files
+                        File.Move(file, SettingsAndConstants.FileDirectory + separator + file);
                     }    
                     return false; // if there is just one file, it obviously does not need merging 
                 }   
