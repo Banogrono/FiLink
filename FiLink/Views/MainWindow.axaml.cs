@@ -144,7 +144,7 @@ namespace FiLink.Views
 
         private void OpenDownloads_OnClick(object? sender, RoutedEventArgs e)
         {
-            ViewModel.OpenFolder();
+           ViewModel.OpenFolder();
         }
 
         private void Settings_OnClick(object? sender, RoutedEventArgs e)

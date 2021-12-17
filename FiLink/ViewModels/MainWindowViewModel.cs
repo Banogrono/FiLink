@@ -24,8 +24,9 @@ namespace FiLink.ViewModels
         private float _progressBarValue;
         private int _chunksSent;
         private int _chunksToBeSent;
-        private bool _directoryLock;
+        private int _directoryLock;
 
+        private object token = new object();
         // ================================================================================
         // Public Fields 
         // ================================================================================
@@ -61,7 +62,7 @@ namespace FiLink.ViewModels
             SelectedFiles = new ObservableCollection<string>();
             SelectedHosts = new ObservableCollection<string>();
             
-            _directoryLock = false;
+            _directoryLock = 0;
             
             // HostFinder.OnHostSearchProgressed += ChangeProgressBarValue; // todo: find a better way of doing that
             Encryption.OnDecryptingFile += OnDecryption;
@@ -317,12 +318,8 @@ namespace FiLink.ViewModels
         
         private void OnFileDownloaded(object? sender, string filename)
         {
-            InfoLabel = "Received: " + filename;
-            if (_directoryLock == false)
-            {
-                _directoryLock = true;
-                OpenFolder();
-            }
+            InfoLabel = "Received: " + filename + " " + _directoryLock;
+            OpenFolder();
         }
         
         private void OnDownloadProgress(object? sender, int[] values)

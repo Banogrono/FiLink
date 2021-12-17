@@ -30,7 +30,7 @@ namespace FiLink.Models
                                                "--clearHost - clears host list.\n" +
                                                "--exit - closes the application.\n";
 
-        private MainWindowViewModel? _viewModel = new();
+        private MainWindowViewModel? _viewModel;
 
         // =============================================================================================================
         // Public Methods
@@ -69,10 +69,10 @@ namespace FiLink.Models
         /// </returns>
         public int ParseArguments(string[]? args) // todo: add default answer
         {
-            if (_viewModel == null)
-            {
-                return -3;
-            }
+            // if (_viewModel == null)
+            // {
+            //     return -3;
+            // }
 
             if (args == null)
             {

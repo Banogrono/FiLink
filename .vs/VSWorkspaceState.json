@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\FiLink"
+    "\\FiLink",
+    "\\FiLink\\Models"
   ],
   "SelectedNode": "\\FiLink.sln",
   "PreviewInSolutionExplorer": false

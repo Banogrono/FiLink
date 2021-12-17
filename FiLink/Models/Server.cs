@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -15,7 +16,7 @@ namespace FiLink.Models
         private readonly TcpClient _infoChannel;
         private readonly TcpClient _dataChannel;
         private readonly NetworkStream _infoStream;
-        private string _sessionKey;
+        private string? _sessionKey;
 
         // =============================================================================================================
         // Public Fields
@@ -58,8 +59,8 @@ namespace FiLink.Models
                     SendInformation("ready");
 
                     var response = ReceiveCallback();
-                    UtilityMethods.Print( "[II] " + response);
-                    
+                    UtilityMethods.Print("[II] " + response);
+
                     if (response == null) return; // DO NOT REMOVE
 
                     if (response.Contains("server_stop:" + _sessionKey)) break;
@@ -71,9 +72,9 @@ namespace FiLink.Models
                     fileName = fileInfo[1];
                     var fileSize = int.Parse(fileInfo[2]);
                     if (fileSize == 0) return;
-                    
+
                     UtilityMethods.Print("[II] receiving: " + fileName);
-                    
+
                     var savingPath = UtilityMethods.IsUnix() ? $"{_directory}/{fileName}" : $@"{_directory}\{fileName}";
 
                     // this saves file and caused duplicates when file was small enough to fit in buffer. Then the
@@ -81,15 +82,16 @@ namespace FiLink.Models
                     // it, making a duplicate.
                     GetFile(savingPath, fileSize);
                 }
+
                 // merging file chunks
-                var mergingRequired =  UtilityMethods.MergeFile(Path.GetFileNameWithoutExtension(fileName));
+                var mergingRequired = UtilityMethods.MergeFile(Path.GetFileNameWithoutExtension(fileName));
 
                 if (EncryptionEnabled)
                 {
                     UtilityMethods.Print("[II] Decrypting file");
                     var slash = UtilityMethods.IsUnix() ? "/" : @"\";
                     var path = SettingsAndConstants.FileDirectory + slash;
-                    
+
                     Encryption.FileDecrypt(
                         path + (mergingRequired ? Path.GetFileNameWithoutExtension(fileName) : fileName),
                         path + Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(fileName)),
@@ -99,15 +101,16 @@ namespace FiLink.Models
 
                 Close();
                 UtilityMethods.Print("[II] Server offline");
-               
                 OnFileReceived?.Invoke(this, fileName); // this one is invoked twice - probably framework bug
+               
             }
             catch (Exception e)
             {
-                UtilityMethods.Print( "[EE] " + e.Message);
+                UtilityMethods.Print("[EE] " + e.Message);
                 UtilityMethods.LogToFile(e.ToString());
                 throw;
             }
+            
         }
 
         // =============================================================================================================
@@ -279,12 +282,14 @@ namespace FiLink.Models
         // =============================================================================================================
         // Events 
         // =============================================================================================================
+        
 
         /// <summary>
         /// Invoked when file is downloaded.
         /// </summary>
-        public static event EventHandler<string>? OnFileReceived;
-
+        //public static event EventHandler<string>? OnFileReceived;
+        public static event EventHandler<string> OnFileReceived;
+        
         /// <summary>
         /// Invoked when session with client is closed.
         /// </summary>
@@ -295,5 +300,7 @@ namespace FiLink.Models
         /// and the second total number of file parts.
         /// </summary>
         public static event EventHandler<int[]>? OnDownloadProgress;
+
+       
     }
 }

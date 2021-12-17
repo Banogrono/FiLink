@@ -93,10 +93,11 @@ namespace FiLink.Models
                             message = DateTime.Now + " : " + message;
                         }
 
-                        TextWriter t = new StreamWriter("error.txt");
-                        t.Write("\n" + message);
-                        t.Close();
-
+                        using (StreamWriter sw = File.AppendText("error.txt"))
+                        {
+                            sw.Write("\n" + message);
+                        }	
+                        
                         File.Delete("~errorLock");
                         break;
                     }
