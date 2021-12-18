@@ -31,7 +31,6 @@ namespace FiLink.Models
 
         public static List<string> SessionKeys;
         private static string _fileDirectory;
-
         public static string TempFilesDir { get; set; }
 
         public static bool EnableConsoleMode { get; set; }
@@ -43,6 +42,21 @@ namespace FiLink.Models
         public static bool EnableConsoleLog { get; set; } = true;
         
         public static bool EnableAutoOpenDownloadDir { get; set; } = true;
+        
+        public static readonly string Help =   "Welcome to FiLink File Transfer Application!\n" +
+                                               "Available arguments: \n" +
+                                               "[--help | -h] - opens this help.\n" +
+                                               "[--cli ] - launches application without GUI in text interface mode.\n" +
+                                               "[--faf <ip> <path_to_file> ] - (fire and forget) sends a file and closes application.\n" +
+                                               "[--quiet | -q] - disables most console logging.\n" +
+                                               "[--noserver | -ns] - disables server. Warning: application cannot receive files in this mode!\n" +
+                                               "[--nofinder | -nf] - disables Host Finder. Warning: hosts can not be searched for/ found in this mode!\n" +
+                                               "[--ips <ip>... | -a] - add IP addresses of hosts, each address has to be separated by space. Used without arguments shows list of entered IPs.\n" +
+                                               "[--files <path_to_file>... | -f] - add files, each path to file has to be separated with space. Names containing spaces have to be inside \"\". Used without arguments shows list of entered files.  \n" +
+                                               "[--send | -s] - sends all entered files to all entered hosts.\n" +
+                                               "[--clearFiles | -cf] - clears files list.\n" +
+                                               "[--clearHost | -ch ] - clears host list.\n" +
+                                               "[--exit | -e ] - closes the application.\n";
 
         // =============================================================================================================
         // Constructors 

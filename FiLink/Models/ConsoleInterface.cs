@@ -9,28 +9,18 @@ using FiLink.ViewModels;
 
 namespace FiLink.Models
 {
-    public class ConsoleInterface : IDisposable
+    public class ConsoleInterface
     {
         // =============================================================================================================
         // Private Fields
         // =============================================================================================================
-
-        private static readonly string _help = "Welcome to FiLink File Transfer Application!\n" +
-                                               "Available arguments: \n" +
-                                               "--help - opens this help.\n" +
-                                               "--cli - launches application without GUI in text interface mode.\n" +
-                                               "--faf <ip> <path_to_file> - (fire and forget) sends a file and closes application.\n" +
-                                               "--quiet - disables most console logging.\n" +
-                                               "--noserver - disables server. Warning: application cannot receive files in this mode!\n" +
-                                               "--nofinder - disables Host Finder. Warning: hosts can not be searched for/ found in this mode!\n" +
-                                               "--ips <ip>... - add IP addresses of hosts, each address has to be separated by space.\n" +
-                                               "--files <path_to_file>... - add files, each path to file has to be separated with space. Names containing spaces have to be inside \"\" \n" +
-                                               "--send - sends all entered files to all entered hosts.\n" +
-                                               "--clearFiles - clears files list.\n" +
-                                               "--clearHost - clears host list.\n" +
-                                               "--exit - closes the application.\n";
-
+        
         private MainWindowViewModel? _viewModel;
+
+        public ConsoleInterface()
+        {
+            _viewModel = new MainWindowViewModel();
+        }
 
         // =============================================================================================================
         // Public Methods
@@ -67,125 +57,77 @@ namespace FiLink.Models
         /// [0]  - default output.
         /// [1]  - full cli mode was selected.
         /// </returns>
-        public int ParseArguments(string[]? args) // todo: add default answer
+        private int ParseArguments(string[]? args) // todo: add default answer
         {
-            // if (_viewModel == null)
-            // {
-            //     return -3;
-            // }
+            if (args is not {Length: > 0}) return 0;
 
-            if (args == null)
+            if (_viewModel == null)
             {
-                return -2;
+                _viewModel = new MainWindowViewModel();
+            }
+            
+            var argsList = new List<string>(args); 
+                
+            if (argsList.Contains("--exit") || argsList.Contains("-e"))
+            {
+                Console.WriteLine("Bye.");
+                return -1;
+            }
+                
+            if (argsList.Contains("--help") || argsList.Contains("-h"))
+            {
+                Console.WriteLine(SettingsAndConstants.Help);
+                return 0;
             }
 
-            if (args.Length > 0)
+            if (argsList.Contains("--ips") || argsList.Contains("-a"))
             {
-                var argsList = new List<string>(args); // todo: upgrade this to a switch 
+                GetIps(argsList);
+            }
 
-                if (argsList.Contains("--help"))
+            if (argsList.Contains("--files") || argsList.Contains("-f"))
+            {
+                GetFiles(argsList);
+            }
+
+            if (argsList.Contains("--send") || argsList.Contains("-s"))
+            {
+                if (_viewModel.SelectedFiles.Count == 0 || _viewModel.SelectedHosts.Count == 0)
                 {
-                    Console.WriteLine(_help);
+                    Console.WriteLine("No selected files/ hosts.");
+                    return 0;
                 }
 
-                if (argsList.Contains("--ips"))
+                SendFiles();
+            }
+            
+            if (argsList.Contains("--quiet") || argsList.Contains("-q"))
+            {
+                SettingsAndConstants.EnableConsoleLog = !SettingsAndConstants.EnableConsoleLog;
+            }
+
+            if (argsList.Contains("--cli"))
+            {
+                if (SettingsAndConstants.EnableConsoleMode)
                 {
-                    GetIps(argsList);
+                    Console.WriteLine("Application already runs in console mode.");
+                    return 0;
                 }
 
-                if (argsList.Contains("--files"))
-                {
-                    GetFiles(argsList);
-                }
+                Console.WriteLine("Running in Command Line Mode.");
+                SettingsAndConstants.EnableConsoleMode = true;
+                return 1;
+            }
 
-                if (argsList.Contains("--send"))
-                {
-                    if (_viewModel.SelectedFiles.Count == 0 || _viewModel.SelectedHosts.Count == 0)
-                    {
-                        Console.WriteLine("No selected files/ hosts.");
-                        return 0;
-                    }
-
-                    SendFiles();
-                }
-
-                if (argsList.Contains("--noserver"))
-                {
-                    SettingsAndConstants.EnableServer = !SettingsAndConstants.EnableServer;
-                    Console.WriteLine($"Server {(SettingsAndConstants.EnableServer ? "enabled" : "disabled")}.");
-                }
-
-                if (argsList.Contains("--nofinder"))
-                {
-                    SettingsAndConstants.EnableHostFinder = !SettingsAndConstants.EnableHostFinder;
-                    Console.WriteLine(
-                        $"Host Finder {(SettingsAndConstants.EnableHostFinder ? "enabled" : "disabled")}.");
-                }
-
-                if (argsList.Contains("--quiet"))
-                {
-                    SettingsAndConstants.EnableConsoleLog = !SettingsAndConstants.EnableConsoleLog;
-                }
-
-                if (argsList.Contains("--cli"))
-                {
-                    if (SettingsAndConstants.EnableConsoleMode)
-                    {
-                        Console.WriteLine("Application already runs in console mode.");
-                        return 0;
-                    }
-
-                    Console.WriteLine("Running in Command Line Mode.");
-                    SettingsAndConstants.EnableConsoleMode = true;
-                    return 1;
-                }
-
-                if (argsList.Contains("--exit"))
-                {
-                    Console.WriteLine("Bye.");
-                    return -1;
-                }
-
-                if (argsList.Contains("--faf"))
-                {
-                    var index = argsList.IndexOf("--faf");
-                    var ip = args[index + 1];
-                    var filePath = args[index + 2];
-                    var temp = File.Exists(filePath) || Directory.Exists(filePath);
-
-                    if (!IPAddress.TryParse(ip, out _) || !temp)
-                    {
-                        Console.WriteLine("IP address and/ or file path is not correct.");
-                        return -1;
-                    }
-
-                    var breakOut = false;
-                    Client.OnDataSent += (_, _) => breakOut = true;
-                    ClearFiles();
-                    ClearHosts();
-                    AddFile(filePath);
-                    _viewModel.SelectedHosts.Add(ip);
-                    SendFiles();
-                    while (!breakOut)
-                    {
-                        Thread.Sleep(10);
-                    }
-
-                    Console.WriteLine("File sent. Quitting...");
-                    return -1;
-                }
+            if (argsList.Contains("--faf"))
+            {
+                return FireAndForget(ref args);
             }
 
             return 0;
         }
         
-        /// <summary>
-        /// Disposes object.
-        /// </summary>
-        public void Dispose()
-        {
-            _viewModel = null;
-        }
+        
 
         // =============================================================================================================
         // Private Methods
@@ -288,6 +230,7 @@ namespace FiLink.Models
                 return;
             }
 
+            var addedIps = 0;
             var index = args.IndexOf("--ips");
             for (int i = index + 1; i < args.Count; i++)
             {
@@ -299,7 +242,17 @@ namespace FiLink.Models
 
                 if (IPAddress.TryParse(entry, out _))
                 {
+                    addedIps++;
                     _viewModel.SelectedHosts.Add(entry);
+                }
+            }
+
+            if (addedIps == 0)
+            {
+                Console.WriteLine("Entered IPs:");
+                foreach (var ip in _viewModel.SelectedHosts)
+                {
+                    Console.WriteLine(ip);   
                 }
             }
         }
@@ -315,17 +268,24 @@ namespace FiLink.Models
                 return;
             }
 
+            var addedFiles = 0;
             var index = args.IndexOf("--files");
             for (int i = index + 1; i < args.Count; i++)
             {
                 var entry = args[i];
-                // if (entry.Contains("--")) // technically speaking file name can contain '--'...
-                // {
-                //     break;
-                // }
                 if (File.Exists(entry) || Directory.Exists(entry))
                 {
+                    addedFiles++;
                     AddFile(entry);
+                }
+            }
+
+            if (addedFiles == 0)
+            {
+                Console.WriteLine("Entered files:");
+                foreach (var file in _viewModel.SelectedFiles)
+                {
+                    Console.WriteLine(file);
                 }
             }
         }
@@ -354,5 +314,49 @@ namespace FiLink.Models
                 _viewModel?.SelectedFiles.Add(result);
             }
         }
+
+
+        // todo: fix connection issues when cannot connect to other host
+        public int FireAndForget(ref string[] args)
+        {
+            if (args.Length < 3)
+            {
+                Console.WriteLine("Invalid number of arguments.");
+                return -1;
+            }
+
+            if (_viewModel == null)
+            {
+                return -1;
+            }
+
+            var argsList = new List<string>(args);
+            SettingsAndConstants.EnableAutoOpenDownloadDir = false;
+            var index = argsList.IndexOf("--faf");
+            var ip = args[index + 1];
+            var filePath = args[index + 2];
+            var temp = File.Exists(filePath) || Directory.Exists(filePath);
+
+            if (!IPAddress.TryParse(ip, out _) || !temp)
+            {
+                Console.WriteLine("IP address and/ or file path is not correct.");
+                return -1;
+            }
+
+            var breakOut = false;
+            Client.OnDataSent += (_, _) => breakOut = true;
+            ClearFiles();
+            ClearHosts();
+            AddFile(filePath);
+            _viewModel.SelectedHosts.Add(ip);
+            SendFiles();
+            while (!breakOut)
+            {
+                Thread.Sleep(10);
+            }
+
+            Console.WriteLine("File sent. Quitting...");
+            return -1;
+        } 
     }
 }

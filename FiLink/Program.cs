@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -15,38 +16,38 @@ namespace FiLink
         // yet and stuff might break.
         public static void Main(string[] args)
         {
-            ConsoleInterface cli = new ConsoleInterface();
-            var appMode = cli.ParseArguments(args);
+            var code = BasicProgramArgumentParser(args);
+            if (code == -1 ) return;
             
             // This cancellation token allows me to break out of any loop form outside of thread and effectively end application run. 
             CancellationTokenSource cancellationTokenSource = new();
             var token = cancellationTokenSource.Token;
-            
-            if (appMode == 0)
+
+
+            if (SettingsAndConstants.EnableHostFinder)
             {
-                cli.Dispose();
-            
-                if (SettingsAndConstants.EnableHostFinder)
-                {
-                    // Running Identifier Service
-                    Identifier(token);
-                }
-            
-                if (SettingsAndConstants.EnableServer)
-                {
-                    // Running Server 
-                    Server(token);
-                }
-            
+                // Running Identifier Service
+                Identifier(token);
+            }
+
+            if (SettingsAndConstants.EnableServer)
+            {
+                // Running Server 
+                Server(token);
+            }
+
+            if (!SettingsAndConstants.EnableConsoleMode)
+            {
                 // Running GUI thread
                 BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
             }
-            
-            if (appMode == 1)
+            else
             {
+                // Running CLI only
+                ConsoleInterface cli = new ConsoleInterface();
                 cli.RunCli();
             }
-            
+
             // Killing the server and identifier
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
@@ -104,5 +105,46 @@ namespace FiLink
                 .UsePlatformDetect()
                 .LogToTrace()
                 .UseReactiveUI();
+
+        // Basic command line arguments parser 
+        private static int BasicProgramArgumentParser(string[] args)
+        {
+            if (args.Length == 0) return 0;
+
+            var argsList = new List<string>(args);
+
+            if (argsList.Contains("--cli"))
+                SettingsAndConstants.EnableConsoleMode = true;
+
+            if (argsList.Contains("--noserver") || argsList.Contains("-ns"))
+                SettingsAndConstants.EnableServer = false;
+
+            if (argsList.Contains("--nofinder") || argsList.Contains("-nf"))
+                SettingsAndConstants.EnableHostFinder = false;
+
+            if (argsList.Contains("--quiet") || argsList.Contains("-q"))
+                SettingsAndConstants.EnableConsoleLog = false;
+
+            if (argsList.Contains("--help") || argsList.Contains("-h"))
+            {
+                Console.WriteLine(SettingsAndConstants.Help);
+                return -1;
+            }
+            
+            if (argsList.Contains("--exit") || argsList.Contains("-e"))
+            {
+                return -1;
+            }
+            
+            if (argsList.Contains("--faf"))
+            {
+                SettingsAndConstants.EnableConsoleMode = true;
+                var cli = new ConsoleInterface();
+                cli.FireAndForget(ref args);
+                return -1;
+            }
+
+            return 0;
+        }
     }
 }
