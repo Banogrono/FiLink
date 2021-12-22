@@ -19,7 +19,7 @@ namespace FiLink.Models
             get => _fileDirectory;
             set {
             _fileDirectory = value;
-            OnDirectoryChanged?.Invoke(null, null!);
+            OnDirectoryChanged(null, null!);
             }
         }
 
@@ -75,9 +75,6 @@ namespace FiLink.Models
                 SessionKeys = new List<string>();
                 TempFilesDir = "temp";
                 EnableEncryption = false;
-                
-                // todo remove that later
-                EncryptionPassword = "152152";
             }
             else
             {
@@ -90,9 +87,6 @@ namespace FiLink.Models
                 SessionKeys = new List<string>();
                 TempFilesDir = "temp";
                 EnableEncryption = false;
-                
-                // todo remove that later
-                EncryptionPassword = "152152";
             }
         }
 

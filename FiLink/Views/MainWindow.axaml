@@ -11,16 +11,13 @@
         x:Class="FiLink.Views.MainWindow"
         Icon="/Assets/FiLinkIco.png"
         KeyUp="InputElement_OnKeyUp"
-        Title="FiLink"
-        
-        >
-    
-    
+        Title="FiLink">
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
-
+    
+    <!-- Actual working style, thanks to: https://habr.com/en/post/471342/ -->
     <Window.Styles>
         <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
             <Setter Property="Background" Value="#323232"/>
@@ -91,7 +88,7 @@
                 Background="#3b3b3b">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Classes="item" Background="#3b3b3b">
+                        <Border Background="#3b3b3b">
                             <TextBlock Foreground="White" Background="Transparent" Text="{Binding}"/>
                         </Border>
                     </DataTemplate>
@@ -103,12 +100,11 @@
                 Items="{Binding FileCollection}"
                 SelectedItems="{Binding SelectedFiles}"
                 Grid.Column="3"
-                Classes="list"
                 SelectionMode="Multiple,Toggle"
                 Background="#3b3b3b">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Classes="item" Background="#3b3b3b">
+                        <Border Background="#3b3b3b">
                             <TextBlock Foreground="White" Text="{Binding}" />
                         </Border>
                     </DataTemplate>

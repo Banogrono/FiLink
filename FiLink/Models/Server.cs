@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -27,8 +26,7 @@ namespace FiLink.Models
         // Constructors
         // =============================================================================================================
 
-        public Server(ref TcpClient infoChannel, ref TcpClient dataChannel, string dataDirectory = "Received_Files") 
-            // todo: before removing check TUI interface - this param might be used there
+        public Server(ref TcpClient infoChannel, ref TcpClient dataChannel)
         {
             _dataChannel = dataChannel;
             _infoChannel = infoChannel;

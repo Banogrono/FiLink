@@ -317,6 +317,11 @@ namespace FiLink.Models
 
 
         // todo: fix connection issues when cannot connect to other host
+        /// <summary>
+        /// Sends the file and closes application right away.
+        /// </summary>
+        /// <param name="args"> [ip_address] [path_to_file] </param>
+        /// <returns> -1 code, on which application should exit.</returns>
         public int FireAndForget(ref string[] args)
         {
             if (args.Length < 3)

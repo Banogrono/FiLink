@@ -11,7 +11,7 @@ namespace FiLink.Models
      * A slightly modified version of https://www.codegrepper.com/code-examples/csharp/c%23+encrypt+file+with+password
      * todo: reimplement this class
      */
-    
+
     public static class Encryption
     {
         //  Call this function to remove the key from memory after use for security
@@ -45,9 +45,8 @@ namespace FiLink.Models
         /// <param name="password"></param>
         public static void FileEncrypt(string inputFile, string password)
         {
-            
             OnEncryptingFile?.Invoke(null, null!);
-            
+
             //http://stackoverflow.com/questions/27645527/aes-encryption-on-large-files
 
             //generate random salt
@@ -116,7 +115,7 @@ namespace FiLink.Models
         public static void FileDecrypt(string inputFile, string outputFile, string password)
         {
             OnDecryptingFile?.Invoke(null, null!);
-            
+
             byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
             byte[] salt = new byte[32];
 
@@ -170,12 +169,12 @@ namespace FiLink.Models
                 fsCrypt.Close();
             }
         }
-        
+
         /// <summary>
         /// Invoked when file is downloaded.
         /// </summary>
         public static event EventHandler? OnEncryptingFile;
-        
+
         /// <summary>
         /// Invoked when file is downloaded.
         /// </summary>

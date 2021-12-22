@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Avalonia.Controls;
@@ -22,11 +21,7 @@ namespace FiLink.ViewModels
 
         private string _infoLabel;
         private float _progressBarValue;
-        private int _chunksSent;
-        private int _chunksToBeSent;
-        private int _directoryLock;
 
-        private object token = new object();
         // ================================================================================
         // Public Fields 
         // ================================================================================
@@ -62,18 +57,16 @@ namespace FiLink.ViewModels
             SelectedFiles = new ObservableCollection<string>();
             SelectedHosts = new ObservableCollection<string>();
             
-            _directoryLock = 0;
-            
             // HostFinder.OnHostSearchProgressed += ChangeProgressBarValue; // todo: find a better way of doing that
             Encryption.OnDecryptingFile += OnDecryption;
             Encryption.OnEncryptingFile += OnEncryption;
-            
+
             Server.OnFileReceived += OnFileDownloaded;
             Server.OnDownloadProgress += OnDownloadProgress;
 
-            Client.OnClientUnreachable += (_, _) => { InfoLabel = "Client unreachable";};
-            Client.OnDataSent += (_, _) => { InfoLabel = "Data sent!";};
-            Client.OnChunkSent += OnChunkSent;
+            Client.OnClientUnreachable += (_, _) => { InfoLabel = "Client unreachable"; };
+            Client.OnDataSent += (_, _) => { InfoLabel = "Data sent!"; };
+           // Client.OnChunkSent += OnChunkSent; // todo: maybe inform user about progress of sending file?
         }
 
         // ================================================================================
@@ -222,8 +215,8 @@ namespace FiLink.ViewModels
                     Arguments = dir,
                     FileName = fileExplorer,
                 };
-                
-               Process.Start(startInfo);
+
+                Process.Start(startInfo);
             }
             else
             {
@@ -245,14 +238,14 @@ namespace FiLink.ViewModels
                 DataContext = settingsWindowController,
                 ViewModel = settingsWindowController
             };
-            
+
             settingsWindow.ShowDialog(ThisWindow);
         }
 
         // ================================================================================
         // Private Methods 
         // ================================================================================
-        
+
         /// <summary>
         /// Searches for hosts in LAN and returns what it has found.
         /// </summary>
@@ -292,7 +285,6 @@ namespace FiLink.ViewModels
             {
                 UtilityMethods.LogToFile("LoadHosts : " + e);
             }
-
             return null;
         }
 
@@ -300,33 +292,29 @@ namespace FiLink.ViewModels
         // Events and Delegates 
         // ================================================================================
 
-        private void OnChunkSent(object? sender, int progressBarMax)
-        {
-            _chunksToBeSent = progressBarMax;
-            _chunksSent++;
-        }
+
 
         private void OnEncryption(object? sender, EventArgs progressBarMax)
         {
             InfoLabel = "Encrypting file...";
         }
-        
+
         private void OnDecryption(object? sender, EventArgs eventArgs)
         {
             InfoLabel = "Decrypting file...";
         }
-        
+
         private void OnFileDownloaded(object? sender, string filename)
         {
             InfoLabel = "Received: " + filename;
             OpenFolder();
         }
-        
+
         private void OnDownloadProgress(object? sender, int[] values)
         {
             try
             {
-                var percent = values[0] * 100.0f / values[1]; 
+                var percent = values[0] * 100.0f / values[1];
                 InfoLabel = percent.ToString("#.##") + "%";
                 ProgressBarValue = percent;
             }
@@ -335,6 +323,5 @@ namespace FiLink.ViewModels
                 UtilityMethods.LogToFile(e.ToString());
             }
         }
-        
     }
 }

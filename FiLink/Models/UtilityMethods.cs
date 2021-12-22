@@ -41,8 +41,10 @@ namespace FiLink.Models
                         break;
                     }
                 }
+
                 key.Append(randomChar);
             }
+
             return key.ToString();
         }
 
@@ -96,8 +98,8 @@ namespace FiLink.Models
                         using (StreamWriter sw = File.AppendText("error.txt"))
                         {
                             sw.Write("\n" + message);
-                        }	
-                        
+                        }
+
                         File.Delete("~errorLock");
                         break;
                     }
@@ -127,7 +129,7 @@ namespace FiLink.Models
                 {
                     int remaining = chunkSize, bytesRead;
                     while (remaining > 0 && (bytesRead = input.Read(buffer, 0,
-                        Math.Min(remaining, bufferSize))) > 0)
+                               Math.Min(remaining, bufferSize))) > 0)
                     {
                         output.Write(buffer, 0, bytesRead);
                         remaining -= bytesRead;
@@ -140,7 +142,7 @@ namespace FiLink.Models
 
             return index; // number of packets
         }
-        
+
         /// <summary>
         /// Merges chunks of file into one file.
         /// </summary>
@@ -151,12 +153,13 @@ namespace FiLink.Models
             {
                 Print("[II] Merging files...");
                 var separator = IsUnix() ? "/" : @"\";
-                var inputDirectoryPath = SettingsAndConstants.FileDirectory + separator; // + filename + ".chunks" + separator;
-                var filePattern = filename  + @".*"; 
+                var inputDirectoryPath =
+                    SettingsAndConstants.FileDirectory + separator; // + filename + ".chunks" + separator;
+                var filePattern = filename + @".*";
                 Thread.Sleep(50);
-                
+
                 string[] filePaths = Directory.GetFiles(inputDirectoryPath, filePattern);
-                
+
                 /*
                  *                              ========== N O T E ==========
                  * The if statement below, checks for case when there is only one part of file, ergo was already
@@ -173,11 +176,12 @@ namespace FiLink.Models
                     if (Regex.IsMatch(file, filePattern))
                     {
                         File.Move(file, SettingsAndConstants.FileDirectory + separator + file);
-                    }    
+                    }
+
                     return false; // if there is just one file, it obviously does not need merging 
-                }   
-                
-                
+                }
+
+
                 var fileCollection = new List<string>(filePaths);
                 fileCollection.Sort((s, s1) =>
                 {
@@ -185,8 +189,9 @@ namespace FiLink.Models
                     var n2 = int.Parse(s1.Split(separator).Last().Split(".").Last());
                     return n1 >= n2 ? 1 : -1;
                 });
-                
-                using var outputStream = File.Create(SettingsAndConstants.FileDirectory + separator + filename); // is this our problem?
+
+                using var outputStream =
+                    File.Create(SettingsAndConstants.FileDirectory + separator + filename); // is this our problem?
                 foreach (var inputFilePath in fileCollection)
                 {
                     using (var inputStream = File.OpenRead(inputFilePath))
@@ -194,14 +199,14 @@ namespace FiLink.Models
                         // Buffer size can be passed as the second argument.
                         inputStream.CopyTo(outputStream);
                     }
-                    
+
                     if (SettingsAndConstants.EnableConsoleLog)
                         Console.WriteLine("The file {0} has been processed.", inputFilePath);
                 }
 
                 if (SettingsAndConstants.EnableConsoleLog)
                     Console.WriteLine("Files have been merged. Cleaning up...");
-                
+
                 File.Delete(filename);
                 CleanupLeftoverFileChunks(filePattern, SettingsAndConstants.FileDirectory);
             }
@@ -213,7 +218,7 @@ namespace FiLink.Models
 
             return true;
         }
-        
+
         /// <summary>
         /// Removes file chunks left after splitting. 
         /// </summary>
@@ -239,7 +244,7 @@ namespace FiLink.Models
                 LogToFile(e.ToString());
             }
         }
-        
+
         /// <summary>
         /// Gets all pattern-matching files in the directory. 
         /// </summary>
