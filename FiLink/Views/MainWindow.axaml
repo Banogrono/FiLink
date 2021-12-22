@@ -21,6 +21,11 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
+    <Window.Styles>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#323232"/>
+        </Style>
+    </Window.Styles>
 
     <Grid> <!-- Main Grid -->
         <Grid.RowDefinitions>

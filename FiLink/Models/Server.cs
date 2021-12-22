@@ -101,7 +101,7 @@ namespace FiLink.Models
 
                 Close();
                 UtilityMethods.Print("[II] Server offline");
-                OnFileReceived?.Invoke(this, fileName); // this one is invoked twice - probably framework bug
+                OnFileReceived?.Invoke(this, fileName); 
                
             }
             catch (Exception e)
@@ -288,7 +288,7 @@ namespace FiLink.Models
         /// Invoked when file is downloaded.
         /// </summary>
         //public static event EventHandler<string>? OnFileReceived;
-        public static event EventHandler<string> OnFileReceived;
+        public static event EventHandler<string>? OnFileReceived;
         
         /// <summary>
         /// Invoked when session with client is closed.

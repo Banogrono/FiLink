@@ -318,7 +318,7 @@ namespace FiLink.ViewModels
         
         private void OnFileDownloaded(object? sender, string filename)
         {
-            InfoLabel = "Received: " + filename + " " + _directoryLock;
+            InfoLabel = "Received: " + filename;
             OpenFolder();
         }
         
