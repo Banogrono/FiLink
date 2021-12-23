@@ -19,7 +19,7 @@ namespace FiLink.Models
             get => _fileDirectory;
             set {
             _fileDirectory = value;
-            OnDirectoryChanged(null, null!);
+            OnDirectoryChanged?.Invoke(null, null!);
             }
         }
 
