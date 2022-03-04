@@ -316,7 +316,7 @@ namespace FiLink.ViewModels
         /// <returns>True if key is correct or false otherwise.</returns>
         private bool CheckEncryptionKey(string key)
         {
-            if (key.Equals(""))
+            if (key is null or "")
             {
                 Encryption = false;
                 return true;
